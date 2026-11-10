@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Incluye el catálogo de personajes en las funciones del servidor de Vercel.
+  outputFileTracingIncludes: { "/api/**": ["./data/**"] },
+  serverExternalPackages: ["sharp"],
 };
 
 export default nextConfig;

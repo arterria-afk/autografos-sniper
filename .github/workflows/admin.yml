@@ -1,0 +1,35 @@
+name: Admin
+on:
+  workflow_dispatch:
+    inputs:
+      accion:
+        description: "Qué hacer"
+        type: choice
+        options: [health, telegram-setup, feedback, vinted-sweep]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SITE_URL: ${{ vars.SITE_URL }}
+      ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: health
+        if: inputs.accion == 'health'
+        run: curl -sS "$SITE_URL/api/health"
+      - name: telegram-setup
+        if: inputs.accion == 'telegram-setup'
+        run: curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/telegram/setup"
+      - name: feedback
+        if: inputs.accion == 'feedback'
+        run: curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/feedback"
+      - name: vinted-sweep
+        if: inputs.accion == 'vinted-sweep'
+        run: node scripts/vinted-live.mjs
+        env:
+          MODE: sweep
+          LOOP_MINUTES: "0"

@@ -1,0 +1,29 @@
+name: Vinted en directo
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      una_pasada:
+        description: "Solo una pasada (para probar)"
+        type: boolean
+        default: true
+concurrency:
+  group: vinted-live
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/vinted-live.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          LOOP_MINUTES: ${{ (github.event_name == 'workflow_dispatch' && inputs.una_pasada) && '0' || '110' }}
+          EVERY_MINUTES: "15"
+          MODE: live

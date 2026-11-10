@@ -1,12 +1,12 @@
 const MODULOS = [
   { n: 1, t: "Esqueleto web + comprobación de claves", estado: "hecho" },
-  { n: 2, t: "Base de datos (Supabase) + bot de Telegram", estado: "pendiente" },
-  { n: 3, t: "Catálogo de personajes + reconocedor de autógrafos", estado: "en marcha" },
+  { n: 2, t: "Base de datos (Supabase) + bot de Telegram", estado: "listo para conectar" },
+  { n: 3, t: "Catálogo de personajes + reconocedor de autógrafos", estado: "hecho" },
   { n: 4, t: "Alertas de eBay (todos los mercados)", estado: "pendiente" },
-  { n: 5, t: "Vinted en directo (cada 15 min)", estado: "pendiente" },
-  { n: 6, t: "Detector de ventas reales en Vinted", estado: "pendiente" },
-  { n: 7, t: "Precio de referencia (ventas + eBay)", estado: "pendiente" },
-  { n: 8, t: "Juez de chollos + votos en Telegram", estado: "pendiente" },
+  { n: 5, t: "Vinted en directo (cada 15 min)", estado: "listo para probar" },
+  { n: 6, t: "Detector de ventas reales en Vinted", estado: "listo para probar" },
+  { n: 7, t: "Precio de referencia (ventas + eBay)", estado: "hecho" },
+  { n: 8, t: "Juez de chollos + votos en Telegram", estado: "hecho" },
   { n: 9, t: "Página «Valorar»", estado: "pendiente" },
   { n: 10, t: "Página por personaje con gráfica", estado: "pendiente" },
   { n: 11, t: "Snipes con Gixen (modo manual)", estado: "pendiente" },
@@ -29,7 +29,7 @@ export default function Home() {
               <span>
                 <span className="text-[#5f7364]">{String(m.n).padStart(2, "0")}</span> {m.t}
               </span>
-              <span className={m.estado === "hecho" ? "text-[#5cf08a]" : "text-[#5f7364]"}>
+              <span className={m.estado === "hecho" ? "text-[#5cf08a]" : m.estado === "pendiente" ? "text-[#5f7364]" : "text-[#e8c35a]"}>
                 [{m.estado}]
               </span>
             </li>
