@@ -14,6 +14,16 @@ async function probar(nombre, url, accept) {
   const body = await r.text();
   const info = { url, status: r.status, location: r.headers.get("location"), tipo: r.headers.get("content-type"), cookiesRecibidas: set.map((c) => c.split("=")[0]), largo: body.length };
   console.log(nombre, JSON.stringify(info));
+  // Aviso visible por la API de GitHub (annotations): resumen + pistas del contenido.
+  const pistas = {
+    items: (body.match(/\/items\/\d+/g) ?? []).length,
+    testid: (body.match(/data-testid="[^"]*product-item[^"]*"/g) ?? []).slice(0, 2),
+    nextData: body.includes("__NEXT_DATA__"), nextF: body.includes("self.__next_f"),
+    catalogItems: body.includes("catalogItems") || body.includes("catalog_items"),
+    titulo: body.match(/<title>([^<]{0,80})/)?.[1] ?? null,
+    inicio: body.slice(0, 160).replace(/\s+/g, " "),
+  };
+  console.log(`::notice title=${nombre}::${JSON.stringify({ ...info, ...pistas }).replace(/[\r\n%]/g, " ")}`);
   writeFileSync(`diag/${nombre}.json`, JSON.stringify(info, null, 2));
   writeFileSync(`diag/${nombre}.txt`, body.slice(0, 400000));
   await new Promise((s) => setTimeout(s, 4000));

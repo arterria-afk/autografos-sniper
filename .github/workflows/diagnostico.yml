@@ -16,11 +16,13 @@ jobs:
           node-version: 22
       - run: node scripts/diagnostico.mjs
       - name: Guardar resultados en la rama diagnostico-resultados
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          mkdir -p /tmp/out && cp -r diag /tmp/out/ && cd /tmp/out
+          git init -b diagnostico-resultados
           git config user.name "diagnostico"
           git config user.email "diagnostico@users.noreply.github.com"
-          git checkout --orphan diagnostico-resultados
-          git rm -rq --cached .
-          git add diag
-          git commit -qm "Resultados diagnóstico $(date -u +%FT%TZ)"
-          git push -f origin diagnostico-resultados
+          git add diag && git commit -m "Resultados diagnóstico $(date -u +%FT%TZ)"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:diagnostico-resultados 2>&1 | tee /tmp/push.log || true
+          tail -3 /tmp/push.log | tr '\n' ' ' | sed 's/^/::notice title=push::/'
