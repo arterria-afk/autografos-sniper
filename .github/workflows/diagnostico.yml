@@ -15,10 +15,3 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/diagnostico.mjs
-      - name: Pasada real de Vinted
-        run: node scripts/vinted-live.mjs
-        env:
-          SITE_URL: ${{ vars.SITE_URL }}
-          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-          LOOP_MINUTES: "0"
-          MODE: live

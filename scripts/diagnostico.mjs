@@ -1,25 +1,26 @@
-// Diagnóstico de Vinted: prueba el lector de resultados y mira la página de un anuncio.
+// Revisión de calidad: qué reconoce y qué rechaza el reconocedor con anuncios reales de Vinted.
+import { readFileSync } from "node:fs";
 import { buscar } from "./vinted.mjs";
-const aviso = (t, s) => console.log(`::notice title=${t}::${String(s).replace(/[\r\n%]/g, " ").slice(0, 3800)}`);
-const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
+import { parsePersonajes, reconocer } from "../lib/recognize.ts";
 
-const items = await buscar("messi firmado");
-aviso("lector", `${items.length} anuncios. Primeros: ${JSON.stringify(items.slice(0, 4))}`);
-const p2 = await buscar("messi firmado", 2);
-aviso("pagina-2", `${p2.length} anuncios, repetidos con p1: ${p2.filter((x) => items.some((y) => y.id === x.id)).length}`);
-
-// Página de un anuncio: ¿qué marcas de estado trae?
-const it = items[0];
-if (it) {
-  const r = await fetch(it.url, { headers: { "user-agent": UA, accept: "text/html", "accept-language": "es-ES,es;q=0.9" } });
-  const h = await r.text();
-  const claves = ["can_buy", "is_closed", "is_reserved", "is_hidden", "is_sold", "item_closing_action", "status_id", "Vendido", "Reservado", "og:image", "og:title", "product:price:amount"];
-  aviso("anuncio", `${r.status} largo=${h.length} ` + claves.map((k) => `${k}=${h.split(k).length - 1}`).join(" "));
-  for (const k of ["can_buy", "is_closed", "is_reserved", "og:image", "product:price:amount"]) {
-    const i = h.indexOf(k);
-    if (i >= 0) aviso("ctx-" + k, h.slice(Math.max(0, i - 150), i + 250));
+const aviso = (t, s) => console.log(`::notice title=${t}::${String(s).replace(/[\r\n%]/g, " ").slice(0, 3900)}`);
+const personajes = parsePersonajes(readFileSync("data/personajes.txt", "utf8"));
+const todos = new Map();
+for (const p of personajes) for (const w of ["firmado", "autografo", "signed"]) {
+  for (const it of await buscar(`${p.nombre} ${w}`)) todos.set(it.id, it);
+  await new Promise((s) => setTimeout(s, 4000 + Math.random() * 2000));
+}
+const cert = [], sinCert = [], motivos = {}, conFirmaRechazados = [];
+for (const it of todos.values()) {
+  const r = reconocer(it.title, personajes);
+  if (r.ok) (r.conCertificado ? cert : sinCert).push(`${it.price}€ [${r.personaje.id}|${r.tipo}|${r.certificados.join("+")}] ${it.title}`);
+  else {
+    motivos[r.motivo] = (motivos[r.motivo] ?? 0) + 1;
+    if (r.motivo !== "sin_personaje" && r.motivo !== "sin_firma") conFirmaRechazados.push(`${r.motivo}${r.detalle ? "(" + r.detalle + ")" : ""}: ${it.title}`);
+    else if (/firm|autog|sign/i.test(it.title)) conFirmaRechazados.push(`${r.motivo}: ${it.title}`);
   }
 }
-// Un anuncio que ya no existe → ¿404?
-const r404 = await fetch("https://www.vinted.es/items/1-no-existe", { headers: { "user-agent": UA, accept: "text/html" }, redirect: "manual" });
-aviso("borrado", `${r404.status} location=${r404.headers.get("location")}`);
+aviso("resumen", `únicos ${todos.size} · certificados ${cert.length} · sin certificado ${sinCert.length} · rechazos ${JSON.stringify(motivos)}`);
+aviso("certificados", cert.join(" ||| "));
+for (let i = 0; i < 3; i++) aviso("sin-cert-" + i, sinCert.slice(i * 30, i * 30 + 30).join(" ||| "));
+for (let i = 0; i < 3; i++) aviso("rechazados-con-firma-" + i, conFirmaRechazados.slice(i * 30, i * 30 + 30).join(" ||| "));
