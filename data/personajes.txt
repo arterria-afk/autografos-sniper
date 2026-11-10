@@ -1,0 +1,11 @@
+# Una línea por personaje:  id | Nombre | categoría | alias separados por comas
+# Los alias incluyen errores de escritura habituales (ahí salen los chollos).
+# No pongas alias ambiguos (p. ej. "ronaldo" solo, "jordan" solo, "mj").
+kobe-bryant | Kobe Bryant | baloncesto | kobe bryant, kobe, kobe briant, kobe bryan, kobe brayant, black mamba
+michael-jordan | Michael Jordan | baloncesto | michael jordan, micheal jordan, michael jordon, micheal jordon, m jordan, michel jordan
+lebron-james | LeBron James | baloncesto | lebron james, lebron, le bron james, lebron jame, lebrom james
+cristiano-ronaldo | Cristiano Ronaldo | futbol | cristiano ronaldo, cristiano, cr7, c ronaldo, cristiano ronaldinho, christiano ronaldo
+leo-messi | Leo Messi | futbol | messi, lionel messi, leo messi, lionel mesi, leo mesi
+lamine-yamal | Lamine Yamal | futbol | lamine yamal, yamal, lamine, lamin yamal, lamine jamal
+michael-jackson | Michael Jackson | musica | michael jackson, micheal jackson, michael jakson, king of pop
+eminem | Eminem | musica | eminem, eminen, marshall mathers, slim shady

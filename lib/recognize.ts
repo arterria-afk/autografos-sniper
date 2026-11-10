@@ -1,0 +1,147 @@
+// Reconocedor de autógrafos: título de anuncio → personaje + tipo + certificado.
+// Regla de oro: precisión antes que cantidad. Si hay duda, se rechaza.
+
+export type Personaje = { id: string; nombre: string; categoria: string; alias: string[] };
+
+export type Certificado = "PSA/DNA" | "Beckett" | "JSA" | "Upper Deck" | "Panini" | "Fanatics";
+export type Tipo = "foto" | "camiseta" | "balon" | "poster" | "vinilo" | "tarjeta" | "zapatilla" | "otro";
+
+export type Reconocido = {
+  ok: true;
+  personaje: Personaje;
+  tipo: Tipo;
+  tamano: string | null; // 8x10, 11x14… (fotos y pósters)
+  certificados: Certificado[];
+  conCertificado: boolean;
+  coaGenerico: boolean; // dice "COA" pero sin empresa reconocida → riesgo
+  confianza: "alta" | "media";
+};
+export type Rechazado = { ok: false; motivo: string; detalle?: string };
+export type Resultado = Reconocido | Rechazado;
+
+// ---------- normalización ----------
+export function normalizar(s: string): string {
+  return (
+    " " +
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "") // quita acentos
+      .replace(/ß/g, "ss")
+      .replace(/[^a-z0-9/]+/g, " ") // todo lo raro → espacio
+      .replace(/\//g, " / ")
+      .replace(/\s+/g, " ")
+      .trim() +
+    " "
+  );
+}
+const tiene = (t: string, frase: string) => t.includes(" " + normalizar(frase).trim() + " ");
+const algun = (t: string, frases: string[]) => frases.some((f) => tiene(t, f));
+
+// ---------- vocabulario (ES/EN/FR/IT/DE/PT) ----------
+const FIRMA = [
+  "signed", "hand signed", "autograph", "autographed", "autographs", "auto", "autos",
+  "firmado", "firmada", "firmados", "firma", "autografo", "autografiado", "autografiada", "dedicado", "dedicada",
+  "signe", "signee", "dedicace", "dedicacee", "autographe",
+  "firmato", "firmata", "autografato", "autografata", "autografo",
+  "signiert", "handsigniert", "unterschrieben", "autogramm", "autogrammkarte",
+  "assinado", "assinada", "autografado", "autografada",
+];
+// Si aparece cualquiera de estas, NUNCA es un autógrafo bueno.
+const EXCLUIR_SIEMPRE = [
+  "preprint", "pre print", "pre printed", "preprinted", "facsimile", "facsimil", "fac simile",
+  "reprint", "re print", "copy", "copia", "copie", "kopie", "reproduction", "reproduccion", "riproduzione",
+  "printed signature", "printed autograph", "printed auto", "firma impresa", "firma impreso", "autografo impreso",
+  "autopen", "stamped signature", "stamp signature", "firma estampada", "laser signature", "secretarial",
+  "unsigned", "not signed", "sin firmar", "sin firma", "no firmado", "no firmada", "non signe", "non firmato",
+  "nicht signiert", "ohne autogramm",
+];
+// Lotes: no se pueden valorar como una pieza.
+const LOTE = ["lote", "lot", "lots", "bundle", "job lot", "pack de", "set de", "x2", "x3", "x4", "x5", "x10", "collection of", "coleccion de", "konvolut"];
+// "replica" se excluye salvo que haya certificado reconocido
+// (una camiseta "replica" de aficionado puede estar firmada de verdad y certificada).
+const REPLICA = ["replica", "replika", "replique", "fake", "falso", "falsa", "imitacion"];
+
+const CERTS: { cert: Certificado; frases: string[] }[] = [
+  { cert: "PSA/DNA", frases: ["psa / dna", "psa dna", "psadna", "psa"] },
+  { cert: "Beckett", frases: ["beckett", "bas coa", "bas cert", "bas certified", "bas authenticated", "bas witness", "bas witnessed", "bas sticker", "bgs", "bas loa"] },
+  { cert: "JSA", frases: ["jsa", "james spence"] },
+  { cert: "Upper Deck", frases: ["upper deck authenticated", "uda", "upper deck"] },
+  { cert: "Fanatics", frases: ["fanatics", "fanatics authentic"] },
+];
+const COA_GENERICO = ["coa", "loa", "certificado", "certificate", "certificat", "certificato", "zertifikat", "echtheitszertifikat"];
+const COA_NEGADO = ["no coa", "without coa", "sin coa", "sin certificado", "no certificate", "ohne zertifikat", "senza certificato"];
+
+const TIPOS: { tipo: Tipo; frases: string[] }[] = [
+  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cromo", "trading card", "rookie", "rc", "topps", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina"] },
+  { tipo: "camiseta", frases: ["jersey", "camiseta", "shirt", "maillot", "maglia", "trikot", "camisola", "kit"] },
+  { tipo: "balon", frases: ["ball", "balon", "basketball", "football ball", "soccer ball", "pallone", "fussball", "ballon", "bola"] },
+  { tipo: "vinilo", frases: ["vinyl", "vinilo", "lp", "record", "album", "disco", "vinile", "schallplatte", "cd"] },
+  { tipo: "poster", frases: ["poster", "cartel", "affiche", "lithograph", "litografia"] },
+  { tipo: "zapatilla", frases: ["shoe", "shoes", "sneaker", "sneakers", "zapatilla", "zapatillas", "boot", "boots", "bota", "botas", "chaussure", "scarpa"] },
+  { tipo: "foto", frases: ["photo", "foto", "photograph", "fotografia", "picture", "8x10", "11x14", "16x20", "12x18", "bild"] },
+];
+
+// ---------- catálogo ----------
+export function parsePersonajes(txt: string): Personaje[] {
+  return txt
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#"))
+    .map((l) => {
+      const [id, nombre, categoria, alias] = l.split("|").map((x) => x.trim());
+      return { id, nombre, categoria, alias: alias.split(",").map((a) => a.trim()).filter(Boolean) };
+    });
+}
+
+// ---------- reconocedor ----------
+export function reconocer(titulo: string, personajes: Personaje[], descripcion = ""): Resultado {
+  const t = normalizar(titulo);
+  const todo = normalizar(titulo + " " + descripcion);
+
+  // 1) Personaje: exactamente uno.
+  const encontrados = personajes.filter((p) => algun(t, p.alias));
+  if (encontrados.length === 0) return { ok: false, motivo: "sin_personaje" };
+  if (encontrados.length > 1)
+    return { ok: false, motivo: "ambiguo", detalle: encontrados.map((p) => p.nombre).join(" / ") };
+  const personaje = encontrados[0];
+
+  // 2) Exclusiones.
+  const excl = EXCLUIR_SIEMPRE.find((f) => tiene(todo, f));
+  if (excl) return { ok: false, motivo: "excluido", detalle: excl };
+  if (algun(t, LOTE)) return { ok: false, motivo: "lote" };
+
+  // 3) Tiene que decir que está firmado.
+  if (!algun(t, FIRMA)) return { ok: false, motivo: "sin_firma" };
+
+  // 4) Certificados.
+  const certificados = CERTS.filter((c) => algun(todo, c.frases)).map((c) => c.cert);
+  const tipo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
+  // Panini: un cromo firmado a mano NO está certificado. Solo cuenta si es
+  // "Panini Authentic" o una tarjeta con autógrafo de fábrica ("auto", "on card"…).
+  if (
+    tiene(todo, "panini authentic") ||
+    (tiene(t, "panini") && tipo === "tarjeta" && algun(t, ["auto", "autograph", "rpa", "on card", "on card auto", "sticker auto"]))
+  ) {
+    certificados.push("Panini");
+  }
+  const conCertificado = certificados.length > 0;
+  const coaGenerico = !conCertificado && algun(todo, COA_GENERICO) && !algun(todo, COA_NEGADO);
+
+  // 5) "replica": fuera, salvo con certificado reconocido.
+  const rep = REPLICA.find((f) => tiene(todo, f));
+  if (rep && !conCertificado) return { ok: false, motivo: "excluido", detalle: rep };
+
+  const tamano = t.match(/ (8x10|11x14|16x20|12x18|20x24|24x36) /)?.[1] ?? null;
+
+  return {
+    ok: true,
+    personaje,
+    tipo,
+    tamano,
+    certificados,
+    conCertificado,
+    coaGenerico,
+    confianza: conCertificado && tipo !== "otro" ? "alta" : "media",
+  };
+}

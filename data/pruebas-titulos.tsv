@@ -1,0 +1,29 @@
+# título <TAB> resultado esperado: personaje|tipo|cert   o   RECHAZO:motivo
+Kobe Bryant Signed Lakers 8x10 Photo PSA/DNA COA	kobe-bryant|foto|PSA/DNA
+MICHAEL JORDAN AUTOGRAPHED BULLS JERSEY UDA UPPER DECK	michael-jordan|camiseta|Upper Deck
+Micheal Jordon signed basketball JSA	michael-jordan|balon|JSA
+LeBron James Autographed Lakers Jersey Fanatics Authentic	lebron-james|camiseta|Fanatics
+Camiseta Real Madrid firmada por Cristiano Ronaldo con certificado Beckett	cristiano-ronaldo|camiseta|Beckett
+CR7 signed Manchester United shirt BAS COA	cristiano-ronaldo|camiseta|Beckett
+Leo Messi firmado foto 8x10 con certificado	leo-messi|foto|COA
+Lionel Messi Signed Barcelona Replica Jersey Beckett Witnessed	leo-messi|camiseta|Beckett
+Messi replica jersey signed	RECHAZO:excluido
+Lamine Yamal autografo camiseta Barcelona	lamine-yamal|camiseta|-
+2024 Panini Prizm Lamine Yamal Rookie Auto RC /99	lamine-yamal|tarjeta|Panini
+Cromo Panini Lamine Yamal firmado a mano	lamine-yamal|tarjeta|-
+Michael Jackson signed Thriller vinyl LP PSA DNA	michael-jackson|vinilo|PSA/DNA
+Eminem autographed The Slim Shady LP album JSA	eminem|vinilo|JSA
+Eminen signed photo 11x14 Beckett	eminem|foto|Beckett
+Kobe Bryant signed photo preprint	RECHAZO:excluido
+Michael Jordan facsimile signature poster	RECHAZO:excluido
+Messi Autograph reprint 8x10	RECHAZO:excluido
+Lote 5 fotos firmadas Messi	RECHAZO:lote
+Kobe Bryant Lakers jersey size L	RECHAZO:sin_firma
+Michael Jordan and Kobe Bryant signed photo	RECHAZO:ambiguo
+Air Jordan 1 Retro High OG	RECHAZO:sin_personaje
+LeBron James printed signature photo	RECHAZO:excluido
+Cristiano Ronaldo foto autografiada sin certificado	cristiano-ronaldo|foto|-
+Messi Trikot signiert mit Echtheitszertifikat	leo-messi|camiseta|COA
+Maglia Messi autografata JSA	leo-messi|camiseta|JSA
+Ballon signé Messi Beckett	leo-messi|balon|Beckett
+Kobe Bryant Upper Deck Exquisite auto card	kobe-bryant|tarjeta|Upper Deck

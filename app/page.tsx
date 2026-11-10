@@ -1,7 +1,7 @@
 const MODULOS = [
   { n: 1, t: "Esqueleto web + comprobación de claves", estado: "hecho" },
   { n: 2, t: "Base de datos (Supabase) + bot de Telegram", estado: "pendiente" },
-  { n: 3, t: "Catálogo de personajes + reconocedor de autógrafos", estado: "pendiente" },
+  { n: 3, t: "Catálogo de personajes + reconocedor de autógrafos", estado: "en marcha" },
   { n: 4, t: "Alertas de eBay (todos los mercados)", estado: "pendiente" },
   { n: 5, t: "Vinted en directo (cada 15 min)", estado: "pendiente" },
   { n: 6, t: "Detector de ventas reales en Vinted", estado: "pendiente" },
