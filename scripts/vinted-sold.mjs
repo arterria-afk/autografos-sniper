@@ -13,4 +13,5 @@ await bucle(async () => {
     if (resultados.length >= 20) console.log(await web("/api/vinted-sold", { resultados: resultados.splice(0) }));
   }
   if (resultados.length) console.log(await web("/api/vinted-sold", { resultados }));
+  console.log(`::notice title=ventas::revisados ${cola.length}`);
 });

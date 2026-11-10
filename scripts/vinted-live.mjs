@@ -22,4 +22,5 @@ await bucle(async () => {
     }
   }
   console.log("Pasada terminada:", total);
+  console.log(`::notice title=pasada ${MODE}::${JSON.stringify(total)}`);
 });
