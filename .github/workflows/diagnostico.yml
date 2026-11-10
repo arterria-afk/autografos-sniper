@@ -1,0 +1,26 @@
+name: Diagnóstico Vinted
+on:
+  push:
+    branches: [diagnostico]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/diagnostico.mjs
+      - name: Guardar resultados en la rama diagnostico-resultados
+        run: |
+          git config user.name "diagnostico"
+          git config user.email "diagnostico@users.noreply.github.com"
+          git checkout --orphan diagnostico-resultados
+          git rm -rq --cached .
+          git add diag
+          git commit -qm "Resultados diagnóstico $(date -u +%FT%TZ)"
+          git push -f origin diagnostico-resultados
