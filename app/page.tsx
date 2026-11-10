@@ -1,103 +1,41 @@
-import Image from "next/image";
+const MODULOS = [
+  { n: 1, t: "Esqueleto web + comprobación de claves", estado: "hecho" },
+  { n: 2, t: "Base de datos (Supabase) + bot de Telegram", estado: "pendiente" },
+  { n: 3, t: "Catálogo de personajes + reconocedor de autógrafos", estado: "pendiente" },
+  { n: 4, t: "Alertas de eBay (todos los mercados)", estado: "pendiente" },
+  { n: 5, t: "Vinted en directo (cada 15 min)", estado: "pendiente" },
+  { n: 6, t: "Detector de ventas reales en Vinted", estado: "pendiente" },
+  { n: 7, t: "Precio de referencia (ventas + eBay)", estado: "pendiente" },
+  { n: 8, t: "Juez de chollos + votos en Telegram", estado: "pendiente" },
+  { n: 9, t: "Página «Valorar»", estado: "pendiente" },
+  { n: 10, t: "Página por personaje con gráfica", estado: "pendiente" },
+  { n: 11, t: "Snipes con Gixen (modo manual)", estado: "pendiente" },
+];
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="space-y-6">
+      <section>
+        <h1 className="text-xl text-[#5cf08a]">Sniper de autógrafos certificados</h1>
+        <p className="mt-2 text-sm text-[#8fa394]">
+          Solo piezas con certificado reconocido: PSA/DNA, Beckett/BAS, JSA, Upper Deck, Panini, Fanatics.
+        </p>
+      </section>
+      <section className="rounded border border-[#1f2a22] bg-[#0f1411]">
+        <h2 className="border-b border-[#1f2a22] px-4 py-2 text-sm text-[#8fa394]">Hoja de ruta</h2>
+        <ul className="divide-y divide-[#1f2a22] text-sm">
+          {MODULOS.map((m) => (
+            <li key={m.n} className="flex items-center justify-between gap-3 px-4 py-2">
+              <span>
+                <span className="text-[#5f7364]">{String(m.n).padStart(2, "0")}</span> {m.t}
+              </span>
+              <span className={m.estado === "hecho" ? "text-[#5cf08a]" : "text-[#5f7364]"}>
+                [{m.estado}]
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
