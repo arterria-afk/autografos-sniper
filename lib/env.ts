@@ -7,13 +7,15 @@ export const ENV_VARS = [
   { name: "TELEGRAM_BOT_TOKEN", desc: "Token del bot de Telegram (@BotFather)", fase: 2 },
   { name: "TELEGRAM_CHAT_ID", desc: "Tu número de chat de Telegram", fase: 2 },
   { name: "ALERT_SECRET", desc: "Contraseña interna entre GitHub Actions y la web", fase: 2 },
+  { name: "APP_PASSWORD", desc: "Contraseña para entrar en la web (opcional; si no, usa ALERT_SECRET)", fase: 2, opcional: true },
   { name: "EBAY_CLIENT_ID", desc: "App ID de eBay Developers", fase: 4 },
   { name: "EBAY_CLIENT_SECRET", desc: "Cert ID de eBay Developers", fase: 4 },
 ] as const;
 
 export function envStatus() {
-  return ENV_VARS.map((v) => ({
+  return (ENV_VARS as readonly { name: string; desc: string; fase: number; opcional?: boolean }[]).map((v) => ({
     ...v,
+    opcional: !!v.opcional,
     ok: typeof process.env[v.name] === "string" && process.env[v.name]!.trim() !== "",
   }));
 }

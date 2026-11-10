@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0a0d0b" };
 
 const NAV = [
-  { href: "/", label: "Inicio" },
+  { href: "/", label: "Alertas" },
+  { href: "/valorar", label: "Valorar" },
+  { href: "/personajes", label: "Personajes" },
+  { href: "/ventas", label: "Ventas" },
+  { href: "/snipes", label: "Snipes" },
   { href: "/estado", label: "Estado" },
 ];
 
@@ -22,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" className="text-[#5cf08a] font-bold tracking-tight">
             &gt; sniper_autógrafos<span className="animate-pulse">_</span>
           </Link>
-          <nav className="flex gap-4 text-sm">
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
             {NAV.map((n) => (
               <Link key={n.href} href={n.href} className="text-[#8fa394] hover:text-[#5cf08a]">
                 {n.label}
