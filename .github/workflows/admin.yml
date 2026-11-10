@@ -23,10 +23,12 @@ jobs:
         run: curl -sS "$SITE_URL/api/health"
       - name: telegram-setup
         if: inputs.accion == 'telegram-setup'
-        run: curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/telegram/setup"
+        run: |
+          curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/telegram/setup"
       - name: feedback
         if: inputs.accion == 'feedback'
-        run: curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/feedback"
+        run: |
+          curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/feedback"
       - name: vinted-sweep
         if: inputs.accion == 'vinted-sweep'
         run: node scripts/vinted-live.mjs
