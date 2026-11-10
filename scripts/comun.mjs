@@ -29,9 +29,11 @@ export function personajes() {
 export async function bucle(pasada) {
   const loop = Number(process.env.LOOP_MINUTES ?? 0), every = Number(process.env.EVERY_MINUTES ?? 15);
   const fin = Date.now() + loop * 60e3;
+  let ok = 0, fallos = 0;
+  process.on("exit", () => { if (fallos && !ok) process.exitCode = 1; }); // rojo en GitHub si todo falló
   do {
     const t0 = Date.now();
-    try { await pasada(); } catch (e) { console.error("Error en la pasada:", e.message); }
+    try { await pasada(); ok++; } catch (e) { fallos++; console.error("❌ Error en la pasada:", e.message); }
     const espera = every * 60e3 - (Date.now() - t0);
     if (Date.now() + espera >= fin) break;
     console.log(`Esperando ${Math.round(espera / 60e3)} min…`);
