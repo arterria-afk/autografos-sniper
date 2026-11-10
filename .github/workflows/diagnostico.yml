@@ -15,3 +15,11 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/diagnostico.mjs
+      - name: Recheck de lo guardado (tras publicar Vercel)
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+        run: |
+          sleep 150
+          out=$(curl -sS --fail-with-body -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck" | tr '\n%' '  ')
+          echo "::notice title=recheck::${out:0:3900}"

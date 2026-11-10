@@ -40,7 +40,7 @@ const algun = (t: string, frases: string[]) => frases.some((f) => tiene(t, f));
 
 // ---------- vocabulario (ES/EN/FR/IT/DE/PT) ----------
 const FIRMA = [
-  "signed", "hand signed", "autograph", "autographed", "autographs", "auto", "autos",
+  "signed", "hand signed", "autograph", "autographed", "autographs", "auto", "autos", "autograf", "autografi",
   "firmado", "firmada", "firmados", "firma", "autografo", "autografiado", "autografiada", "dedicado", "dedicada",
   "signe", "signee", "dedicace", "dedicacee", "autographe",
   "firmato", "firmata", "autografato", "autografata", "autografo",
@@ -55,6 +55,13 @@ const EXCLUIR_SIEMPRE = [
   "autopen", "stamped signature", "stamp signature", "firma estampada", "laser signature", "secretarial",
   "unsigned", "not signed", "sin firmar", "sin firma", "no firmado", "no firmada", "non signe", "non firmato",
   "nicht signiert", "ohne autogramm",
+  // firmas impresas / estampadas / bordadas
+  "serigrafiado", "serigrafiada", "serigrafia", "serigrafato", "serigrafata", "stampato", "stampata", "autografo stampato",
+  "impreso", "impresa", "printed", "ricamata", "ricamato", "bordado", "bordada", "embroidered", "hot signature",
+  "facsimile signature", "firma facsimil", "gedruckt",
+  // obras de arte firmadas por el artista, no por el personaje
+  "dibujo", "acuarela", "pintura", "drawing", "painting", "illustration", "ilustracion", "fan art", "opera firmata",
+  "dessin", "aquarelle", "disegno", "acquerello", "zeichnung",
 ];
 // Lotes: no se pueden valorar como una pieza.
 const LOTE = ["lote", "lot", "lots", "bundle", "job lot", "pack de", "set de", "x2", "x3", "x4", "x5", "x10", "collection of", "coleccion de", "konvolut"];
@@ -82,6 +89,21 @@ const TIPOS: { tipo: Tipo; frases: string[] }[] = [
   { tipo: "foto", frases: ["photo", "foto", "photograph", "fotografia", "picture", "8x10", "11x14", "16x20", "12x18", "bild"] },
 ];
 
+// Detrás de "firmado por / autografo di / signed by…" tiene que venir el personaje.
+const POR = ["firmado por", "firmada por", "firmados por", "firmadas por", "autografo de", "autografo di", "autografato da", "autografata da",
+  "firmato da", "firmata da", "signed by", "autographed by", "signe par", "signee par", "signiert von", "autogramm von", "assinado por", "assinada por"];
+const COMODIN = new Set(["el", "la", "los", "las", "il", "lo", "the", "le", "der", "die", "o", "a", "original", "originale", "autentico", "autentica", "real", "authentic"]);
+function firmanteDistinto(t: string, p: Personaje): string | null {
+  for (const f of POR) {
+    const i = t.indexOf(" " + f + " ");
+    if (i < 0) continue;
+    const resto = t.slice(i + f.length + 2).split(" ").filter((w) => w && !COMODIN.has(w));
+    const siguiente = " " + resto.slice(0, 4).join(" ") + " ";
+    if (!p.alias.some((a) => siguiente.includes(" " + normalizar(a).trim() + " "))) return resto.slice(0, 2).join(" ");
+  }
+  return null;
+}
+
 // ---------- catálogo ----------
 export function parsePersonajes(txt: string): Personaje[] {
   return txt
@@ -105,6 +127,10 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
   if (encontrados.length > 1)
     return { ok: false, motivo: "ambiguo", detalle: encontrados.map((p) => p.nombre).join(" / ") };
   const personaje = encontrados[0];
+
+  // 1b) "autógrafo de / signed by / firmado por" + otra persona → firma otro (p. ej. el director de Thriller).
+  const otro = firmanteDistinto(t, personaje);
+  if (otro) return { ok: false, motivo: "firma_otro", detalle: otro };
 
   // 2) Exclusiones.
   const excl = EXCLUIR_SIEMPRE.find((f) => tiene(todo, f));

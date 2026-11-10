@@ -5,7 +5,7 @@ on:
       accion:
         description: "Qué hacer"
         type: choice
-        options: [health, telegram-setup, feedback, vinted-sweep]
+        options: [health, telegram-setup, feedback, recheck, vinted-sweep]
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -29,6 +29,10 @@ jobs:
         if: inputs.accion == 'feedback'
         run: |
           curl -sS --fail-with-body -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/feedback"
+      - name: recheck
+        if: inputs.accion == 'recheck'
+        run: |
+          curl -sS --fail-with-body -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck"
       - name: vinted-sweep
         if: inputs.accion == 'vinted-sweep'
         run: node scripts/vinted-live.mjs
