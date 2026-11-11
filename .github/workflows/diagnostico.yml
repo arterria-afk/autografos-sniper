@@ -6,15 +6,12 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Pasada real de Wallapop
-        run: node scripts/diagnostico.mjs
+      - name: Estado de la web (espera a que Vercel publique)
         env:
           SITE_URL: ${{ vars.SITE_URL }}
-          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-          LOOP_MINUTES: "0"
+        run: |
+          sleep 150
+          out=$(curl -sS "$SITE_URL/api/health" | tr '\n%' '  ')
+          echo "::notice title=health::${out:0:3900}"
