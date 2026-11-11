@@ -121,6 +121,15 @@ function firmanteDistinto(t: string, p: Personaje): string | null {
   return null;
 }
 
+// Numerada de fábrica ("/25", "1/1", "88/230") pero NO temporada ("2024/25", "09/10", "2024/2025").
+function numerada(t: string): boolean {
+  const sin = t.replace(/ (\d{2}|\d{4}) \/ (\d{2}|\d{4}) /g, (m, a, b) => {
+    const x = Number(a.slice(-2)), y = Number(b.slice(-2));
+    return (y - x + 100) % 100 === 1 ? " " : m; // años consecutivos = temporada
+  });
+  return / \/ \d{1,4} /.test(sin);
+}
+
 // ---------- catálogo ----------
 export function parsePersonajes(txt: string): Personaje[] {
   return txt
@@ -166,7 +175,7 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
   // Solo cuenta "<marca> authentic" o una TARJETA con autógrafo de fábrica ("auto", "on card"…).
   const autoFabrica = tipo === "tarjeta" && algun(t, ["auto", "autos", "autograph", "autographs", "autograf", "rpa", "on card", "on card auto", "sticker auto", "signature series", "signatures"]) ||
     // "autógrafo" + numerada de fábrica (/7, /25, /99…) = autógrafo de fábrica
-    (tipo === "tarjeta" && algun(t, ["autografo", "autografiada", "autografata", "autographed", "signed", "firmada", "firmado"]) && / \/ \d{1,4} /.test(t));
+    (tipo === "tarjeta" && algun(t, ["autografo", "autografiada", "autografata", "autographed", "signed", "firmada", "firmado"]) && numerada(t));
   for (const marca of ["Panini", "Topps", "Leaf", "Futera", "Upper Deck"] as const) {
     const m = marca.toLowerCase();
     if (certificados.includes(marca)) continue;
