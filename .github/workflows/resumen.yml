@@ -1,0 +1,16 @@
+name: Resumen diario
+on:
+  schedule:
+    - cron: "41 19 * * *" # ~20:41 / 21:41 en España (UTC+1 / UTC+2)
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enviar resumen por Telegram
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+        run: |
+          curl -sS --fail-with-body -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/resumen"

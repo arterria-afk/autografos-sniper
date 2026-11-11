@@ -18,8 +18,8 @@ export async function alertar(l: Row) {
   const j = juzgar(Number(l.price), ref);
   const nombre = personajes().find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id;
 
-  // Segunda opinión de la IA (si está activada): foto + descripción.
-  const ia = await revisar({
+  // Segunda opinión de la IA (si está activada), solo para los posibles chollos: foto + descripción.
+  const ia = !j.esChollo ? null : await revisar({
     titulo: l.title, descripcion: l.descripcion, precio: Number(l.price), plataforma: PLAT[l.platform] ?? l.platform,
     personaje: nombre, certificados: l.certificados, foto: l.photo_url, referencia: ref?.precio ?? null,
   });
@@ -36,6 +36,9 @@ export async function alertar(l: Row) {
     ({ data: deal, error } = await db().from("deals").insert(fila).select("id").single()); // migración 003 pendiente
   if (error || !deal) return; // ya alertado (external_id único)
   if (descartada) return; // la IA lo ve claro: no molestar (queda en Chollos → Descartados)
+  // Telegram solo para chollos de verdad. Las novedades se quedan en la web + resumen diario.
+  // (ALERTAS_TELEGRAM=todo vuelve al comportamiento anterior.)
+  if (!j.esChollo && process.env.ALERTAS_TELEGRAM !== "todo") return;
 
   const cab = j.esChollo ? `🔥 <b>CHOLLO −${j.descuento}%</b>` : "🆕 <b>Nuevo con certificado</b>";
   const lineas = [
