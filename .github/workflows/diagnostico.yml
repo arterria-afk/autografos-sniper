@@ -15,7 +15,11 @@ jobs:
         with:
           node-version: 22
       - name: Pasada real de Wallapop
-        run: node scripts/diagnostico.mjs
+        run: node scripts/wallapop-live.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          LOOP_MINUTES: "0"
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
