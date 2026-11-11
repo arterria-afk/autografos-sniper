@@ -6,12 +6,21 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/diagnostico.mjs
+      - name: Migraciones
         env:
           SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          out=$(curl -sS "$SITE_URL/api/health" | tr '\n%' '  ')
+          echo "::notice title=health::${out:0:1500}"
+      - name: Pasada real de Wallapop (autógrafos + cartas)
+        run: node scripts/wallapop-live.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          LOOP_MINUTES: "0"
