@@ -3,12 +3,10 @@ on:
   push:
     branches: [diagnostico]
   workflow_dispatch:
-permissions:
-  contents: write
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,10 +14,6 @@ jobs:
           node-version: 22
       - name: Pasada real de Wallapop
         run: node scripts/wallapop-live.mjs
-        env:
-          SITE_URL: ${{ vars.SITE_URL }}
-          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-          LOOP_MINUTES: "0"
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
