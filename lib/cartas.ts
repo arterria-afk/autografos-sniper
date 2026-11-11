@@ -70,7 +70,8 @@ const EXCLUIR = ["lote", "lot", "lots", "bundle", "job lot", "x2", "x3", "x4", "
   "album", "coleccion completa", "set completo", "complete set", "repetidas", "intercambio", "faltas"];
 
 export function reconocerCarta(titulo: string, jugadores: Jugador[]): Carta | CartaRechazo {
-  const t = normalizar(titulo);
+  // "PSA8" → "PSA 8", "BGS9.5" → "BGS 9.5"
+  const t = normalizar(titulo.replace(/\b(psa|bgs|sgc|cgc)(\d)/gi, "$1 $2"));
 
   const encontrados = jugadores.filter((j) => j.alias.some((a) => tiene(t, a)));
   if (!encontrados.length) return { ok: false, motivo: "sin_jugador" };
@@ -79,6 +80,13 @@ export function reconocerCarta(titulo: string, jugadores: Jugador[]): Carta | Ca
 
   const ex = algun(t, EXCLUIR);
   if (ex) return { ok: false, motivo: "excluido", detalle: ex };
+
+  // Varias cartas en un anuncio (dos notas, dos numeraciones o "+ otra carta") = lote.
+  const notas = t.match(/ (psa|bgs|sgc|cgc) (10|[1-9]) /g)?.length ?? 0;
+  const sinTemporadas = t.replace(/ (\d{2}|\d{4}) \/ (\d{2}|\d{4}) /g, (m, a, b) => ((Number(b.slice(-2)) - Number(a.slice(-2)) + 100) % 100 === 1 ? " " : m));
+  const numeraciones = sinTemporadas.match(/ \/ \d{1,4} /g)?.length ?? 0;
+  const mas = /\+\s*\d*\s*(psa|cartas?|cromos?|cards?|gold|ficha|regalo)/i.test(titulo);
+  if (notas > 1 || numeraciones > 1 || mas) return { ok: false, motivo: "varias_cartas" };
 
   const col = COLECCIONES.find(([, , fs]) => algun(t, fs));
   const esCarta = col || algun(t, ["card", "carta", "cromo", "tarjeta", "rookie", "rc", "psa", "bgs", "sgc"]);

@@ -74,6 +74,10 @@ export async function resolverReferencia(personajeId: string, tipo: string, excl
 
 // CARTAS: solo se compara con la MISMA carta (misma colección, temporada, paralela, numeración y nota).
 export async function referenciaCarta(clave: string, excluirId?: string): Promise<Referencia | null> {
+  // Solo se compara si la carta está bien identificada: colección concreta y temporada conocidas.
+  // ("Lamine Yamal PSA 9" sin colección ni año mezclaría cartas distintas → falsos chollos.)
+  const [, coleccion, temporada] = clave.split("|");
+  if (!coleccion || ["?", "topps", "panini"].includes(coleccion) || temporada === "?") return null;
   const hace120 = new Date(Date.now() - 120 * 864e5).toISOString();
   const { data, error } = await db().from("listings")
     .select("external_id,title,price,url,sold_at,platform")
