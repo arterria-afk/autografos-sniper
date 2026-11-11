@@ -8,7 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: ¿Responde la API de Gixen? (usuario inventado)
-        run: |
-          out=$(curl -sS -w " [HTTP %{http_code}]" "https://www.gixen.com/api.php?username=prueba_inexistente_xyz&password=nada&notags=1&listsnipesmain=1" | tr '\n\r%' '   ')
-          echo "::notice title=gixen-api::${out:0:1500}"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/diagnostico.mjs
