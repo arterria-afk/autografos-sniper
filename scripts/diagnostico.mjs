@@ -1,26 +1,36 @@
-// Revisión de calidad: qué reconoce y qué rechaza el reconocedor con anuncios reales de Vinted.
-import { readFileSync } from "node:fs";
-import { buscar } from "./vinted.mjs";
-import { parsePersonajes, reconocer } from "../lib/recognize.ts";
-
+// Diagnóstico de nuevas webs: estructura de las respuestas (vía avisos de GitHub).
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
 const aviso = (t, s) => console.log(`::notice title=${t}::${String(s).replace(/[\r\n%]/g, " ").slice(0, 3900)}`);
-const personajes = parsePersonajes(readFileSync("data/personajes.txt", "utf8"));
-const todos = new Map();
-for (const p of personajes) for (const w of ["firmado", "autografo", "signed"]) {
-  for (const it of await buscar(`${p.nombre} ${w}`)) todos.set(it.id, it);
-  await new Promise((s) => setTimeout(s, 4000 + Math.random() * 2000));
+const q = "messi firmado";
+
+async function probar(nombre, url, headers = {}) {
+  try {
+    const r = await fetch(url, { headers: { "user-agent": UA, "accept-language": "es-ES,es;q=0.9", accept: "text/html,application/json", ...headers }, redirect: "follow" });
+    const b = await r.text();
+    const pist = {
+      status: r.status, url: r.url, tipo: r.headers.get("content-type"), largo: b.length,
+      nextData: b.includes("__NEXT_DATA__"), nextF: b.includes("self.__next_f"), jsonld: (b.match(/application\/ld\+json/g) ?? []).length,
+      messi: (b.match(/messi/gi) ?? []).length, titulo: b.match(/<title>([^<]{0,100})/)?.[1],
+    };
+    aviso(nombre, JSON.stringify(pist));
+    if (b.trim().startsWith("{") || b.trim().startsWith("[")) aviso(nombre + "-json", b.slice(0, 3800));
+    else {
+      const i = b.search(/messi/i);
+      // primer bloque con un anuncio (alrededor de la 3.ª mención, que suele estar ya en los resultados)
+      const ms = [...b.matchAll(/messi/gi)].map((m) => m.index);
+      const k = ms[Math.min(4, ms.length - 1)] ?? i;
+      if (k >= 0) aviso(nombre + "-ctx", b.slice(Math.max(0, k - 1800), k + 1800));
+      const ld = b.match(/<script type="application\/ld\+json">([\s\S]{0,3800})/);
+      if (ld) aviso(nombre + "-ld", ld[1]);
+    }
+  } catch (e) { aviso(nombre, "ERROR " + e.message); }
+  await new Promise((s) => setTimeout(s, 3000));
 }
-const cert = [], sinCert = [], motivos = {}, conFirmaRechazados = [];
-for (const it of todos.values()) {
-  const r = reconocer(it.title, personajes);
-  if (r.ok) (r.conCertificado ? cert : sinCert).push(`${it.price}€ [${r.personaje.id}|${r.tipo}|${r.certificados.join("+")}] ${it.title}`);
-  else {
-    motivos[r.motivo] = (motivos[r.motivo] ?? 0) + 1;
-    if (r.motivo !== "sin_personaje" && r.motivo !== "sin_firma") conFirmaRechazados.push(`${r.motivo}${r.detalle ? "(" + r.detalle + ")" : ""}: ${it.title}`);
-    else if (/firm|autog|sign/i.test(it.title)) conFirmaRechazados.push(`${r.motivo}: ${it.title}`);
-  }
-}
-aviso("resumen", `únicos ${todos.size} · certificados ${cert.length} · sin certificado ${sinCert.length} · rechazos ${JSON.stringify(motivos)}`);
-aviso("certificados", cert.join(" ||| "));
-for (let i = 0; i < 3; i++) aviso("sin-cert-" + i, sinCert.slice(i * 30, i * 30 + 30).join(" ||| "));
-for (let i = 0; i < 3; i++) aviso("rechazados-con-firma-" + i, conFirmaRechazados.slice(i * 30, i * 30 + 30).join(" ||| "));
+
+await probar("wp-api-v3", `https://api.wallapop.com/api/v3/search?keywords=${encodeURIComponent(q)}&order_by=newest&source=search_box&latitude=40.4168&longitude=-3.7038`, { "x-deviceos": "0", accept: "application/json", origin: "https://es.wallapop.com", referer: "https://es.wallapop.com/" });
+await probar("wp-api-general", `https://api.wallapop.com/api/v3/general/search?keywords=${encodeURIComponent(q)}&order_by=newest&latitude=40.4168&longitude=-3.7038`, { accept: "application/json" });
+await probar("wp-web", `https://es.wallapop.com/app/search?keywords=${encodeURIComponent(q)}&order_by=newest`);
+await probar("tc-buscador", `https://www.todocoleccion.net/buscador?bu=${encodeURIComponent(q)}&O=mas_recientes`);
+await probar("tc-s", `https://www.todocoleccion.net/s/${q.replace(/ /g, "-")}`);
+await probar("cw-web", `https://www.catawiki.com/es/s?q=${encodeURIComponent("messi")}`);
+await probar("cw-api", `https://www.catawiki.com/buyer/api/v1/search?q=${encodeURIComponent("messi")}`, { accept: "application/json" });
