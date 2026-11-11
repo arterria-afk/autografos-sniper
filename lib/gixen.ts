@@ -13,6 +13,7 @@ export class GixenError extends Error {
 
 const ERRORES: Record<number, string> = {
   101: "Usuario o contraseña de Gixen incorrectos.",
+  171: "Gixen no reconoce el acceso: entra una vez en gixen.com con tu cuenta desde el navegador y revisa GIXEN_USER y GIXEN_PASS en Vercel.",
 };
 export const mensajeError = (e: unknown) =>
   e instanceof GixenError ? `Gixen dice: ${ERRORES[e.codigo] ?? e.message} (código ${e.codigo})` : `No se pudo hablar con Gixen: ${(e as Error).message}`;
