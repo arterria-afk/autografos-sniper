@@ -3,7 +3,7 @@
 
 export type Personaje = { id: string; nombre: string; categoria: string; alias: string[] };
 
-export type Certificado = "PSA/DNA" | "Beckett" | "JSA" | "Upper Deck" | "Panini" | "Fanatics";
+export type Certificado = "PSA/DNA" | "Beckett" | "JSA" | "Upper Deck" | "Panini" | "Topps" | "Leaf" | "Futera" | "Fanatics";
 export type Tipo = "foto" | "camiseta" | "balon" | "poster" | "vinilo" | "tarjeta" | "zapatilla" | "otro";
 
 export type Reconocido = {
@@ -80,7 +80,7 @@ const COA_GENERICO = ["coa", "loa", "certificado", "certificate", "certificat", 
 const COA_NEGADO = ["no coa", "without coa", "sin coa", "sin certificado", "no certificate", "ohne zertifikat", "senza certificato"];
 
 const TIPOS: { tipo: Tipo; frases: string[] }[] = [
-  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cromo", "trading card", "rookie", "rc", "topps", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina"] },
+  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cartas", "cromo", "trading card", "rookie", "rc", "topps", "leaf", "futera", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina", "carte"] },
   { tipo: "camiseta", frases: ["jersey", "camiseta", "shirt", "maillot", "maglia", "trikot", "camisola", "kit"] },
   { tipo: "balon", frases: ["ball", "balon", "basketball", "football ball", "soccer ball", "pallone", "fussball", "ballon", "bola"] },
   { tipo: "vinilo", frases: ["vinyl", "vinilo", "lp", "record", "album", "disco", "vinile", "schallplatte", "cd"] },
@@ -143,13 +143,14 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
   // 4) Certificados.
   const certificados = CERTS.filter((c) => algun(todo, c.frases)).map((c) => c.cert);
   const tipo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
-  // Panini: un cromo firmado a mano NO está certificado. Solo cuenta si es
-  // "Panini Authentic" o una tarjeta con autógrafo de fábrica ("auto", "on card"…).
-  if (
-    tiene(todo, "panini authentic") ||
-    (tiene(t, "panini") && tipo === "tarjeta" && algun(t, ["auto", "autograph", "rpa", "on card", "on card auto", "sticker auto"]))
-  ) {
-    certificados.push("Panini");
+  // Fabricantes de tarjetas (Panini, Topps, Leaf, Futera): un cromo firmado a mano NO está certificado.
+  // Solo cuenta "<marca> authentic" o una TARJETA con autógrafo de fábrica ("auto", "on card"…).
+  const autoFabrica = tipo === "tarjeta" && algun(t, ["auto", "autos", "autograph", "autographs", "autograf", "rpa", "on card", "on card auto", "sticker auto", "signature series", "signatures"]) ||
+    // "autógrafo" + numerada de fábrica (/7, /25, /99…) = autógrafo de fábrica
+    (tipo === "tarjeta" && algun(t, ["autografo", "autografiada", "autografata", "autographed", "signed", "firmada", "firmado"]) && / \/ \d{1,4} /.test(t));
+  for (const marca of ["Panini", "Topps", "Leaf", "Futera"] as const) {
+    const m = marca.toLowerCase();
+    if (tiene(todo, `${m} authentic`) || (tiene(t, m) && autoFabrica)) certificados.push(marca);
   }
   const conCertificado = certificados.length > 0;
   const coaGenerico = !conCertificado && algun(todo, COA_GENERICO) && !algun(todo, COA_NEGADO);

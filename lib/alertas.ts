@@ -2,14 +2,17 @@ import { db } from "./supabase";
 import { resolverReferencia, juzgar } from "./precio";
 import { enviarAlerta, esc } from "./telegram";
 import { personajes } from "./personajes";
+import { vendedorBloqueado } from "./votos";
+import { FUENTE } from "./precio";
 
-type Row = { id: number; external_id: string; platform: string; title: string; price: number; currency: string; url: string; photo_url: string | null; personaje_id: string; tipo: string; tamano: string | null; certificados: string[] };
+type Row = { id: number; external_id: string; platform: string; seller?: string | null; title: string; price: number; currency: string; url: string; photo_url: string | null; personaje_id: string; tipo: string; tamano: string | null; certificados: string[] };
 
-const PLAT: Record<string, string> = { vinted: "Vinted", ebay: "eBay", wallapop: "Wallapop" };
+const PLAT: Record<string, string> = { vinted: "Vinted", ebay: "eBay", wallapop: "Wallapop", etsy: "Etsy", catawiki: "Catawiki" };
 const eur = (n: number, c = "EUR") => `${n.toLocaleString("es-ES", { maximumFractionDigits: 2 })} ${c === "EUR" ? "€" : c}`;
 
 // Alerta de un anuncio NUEVO y certificado: chollo si hay referencia y descuento.
 export async function alertar(l: Row) {
+  if (await vendedorBloqueado(l.platform, l.seller)) return;
   const ref = await resolverReferencia(l.personaje_id, l.tipo, l.external_id);
   const j = juzgar(Number(l.price), ref);
   const nombre = personajes().find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id;
@@ -30,7 +33,7 @@ export async function alertar(l: Row) {
     `💶 <b>${eur(Number(l.price), l.currency)}</b> en ${PLAT[l.platform] ?? l.platform}`,
   ];
   if (ref) {
-    lineas.push(`📊 Referencia: ${eur(ref.precio)} (${ref.fuente === "vinted_sold" ? "ventas Vinted" : "eBay en venta"}, ${ref.muestra} muestras${ref.nivel > 1 ? ", tipo parecido" : ""})`);
+    lineas.push(`📊 Referencia: ${eur(ref.precio)} (${FUENTE[ref.fuente]}, ${ref.muestra} muestras${ref.nivel > 1 ? ", tipo parecido" : ""})`);
     for (const c of ref.comps.slice(0, 4))
       lineas.push(c.url ? `• <a href="${esc(c.url)}">${eur(c.price)}</a> ${esc(c.title.slice(0, 50))}` : `• ${eur(c.price)} ${esc(c.title.slice(0, 50))}`);
   } else {

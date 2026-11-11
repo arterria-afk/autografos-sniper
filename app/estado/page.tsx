@@ -1,17 +1,17 @@
 import { envStatus } from "@/lib/env";
 
 const HOJA = [
-  ["Esqueleto web + comprobación de claves", "hecho"],
-  ["Base de datos (Supabase) + bot de Telegram", "hecho"],
-  ["Catálogo de personajes + reconocedor", "hecho"],
-  ["Alertas de eBay (todos los mercados)", "pendiente: claves eBay"],
-  ["Vinted en directo (cada 15 min)", "probando"],
-  ["Detector de ventas reales en Vinted", "probando"],
-  ["Precio de referencia (ventas + eBay)", "hecho"],
-  ["Juez de chollos + votos en Telegram", "hecho"],
-  ["Página «Valorar»", "hecho"],
-  ["Página por personaje con gráfica", "hecho"],
-  ["Snipes con Gixen (modo manual)", "hecho"],
+  ["Web, base de datos y bot de Telegram", "hecho"],
+  ["Reconocedor de autógrafos (+ Topps, Leaf, Futera)", "hecho"],
+  ["Vinted en directo + detector de ventas", "hecho"],
+  ["Wallapop en directo", "probando"],
+  ["Panel, Chollos con 3 botones, Mi negocio", "hecho"],
+  ["Precio de referencia (mis ventas → Vinted → eBay)", "hecho"],
+  ["Snipes con Gixen (manual) → inventario", "hecho"],
+  ["eBay", "pendiente: claves eBay"],
+  ["Etsy", "pendiente: clave Etsy"],
+  ["Catawiki como referencia de venta", "aparcado: su API no da precios finales"],
+  ["Todocoleccion", "descartado: protección anti-robots"],
 ];
 
 export const dynamic = "force-dynamic";

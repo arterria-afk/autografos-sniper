@@ -10,11 +10,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#0a0d0b" };
 
 const NAV = [
-  { href: "/", label: "Alertas" },
+  { href: "/", label: "Panel" },
+  { href: "/chollos", label: "Chollos" },
+  { href: "/negocio", label: "Mi negocio" },
+  { href: "/snipes", label: "Snipes" },
   { href: "/valorar", label: "Valorar" },
   { href: "/personajes", label: "Personajes" },
   { href: "/ventas", label: "Ventas" },
-  { href: "/snipes", label: "Snipes" },
   { href: "/estado", label: "Estado" },
 ];
 

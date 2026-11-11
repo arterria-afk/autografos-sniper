@@ -6,7 +6,7 @@ const PARECIDOS: Record<string, string[]> = {
 };
 
 export type Comp = { title: string; price: number; url: string | null; fecha: string | null; fuente: string };
-export type Referencia = { precio: number; fuente: "vinted_sold" | "ebay"; nivel: 1 | 2; muestra: number; comps: Comp[] };
+export type Referencia = { precio: number; fuente: "mis_ventas" | "vinted_sold" | "ebay"; nivel: 1 | 2; muestra: number; comps: Comp[] };
 
 const mediana = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b), m = Math.floor(s.length / 2);
@@ -17,9 +17,25 @@ const percentil = (xs: number[], p: number) => {
   return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
 };
 
-// Cascada: ventas reales Vinted (mismo tipo → tipo parecido) → anuncios eBay → "no sé".
+export const FUENTE: Record<Referencia["fuente"], string> = { mis_ventas: "mis ventas", vinted_sold: "ventas Vinted", ebay: "eBay en venta" };
+
+// Cascada: mis ventas → ventas reales Vinted (mismo tipo → tipo parecido) → anuncios eBay → "no sé".
 export async function resolverReferencia(personajeId: string, tipo: string, excluirId?: string): Promise<Referencia | null> {
   const hace90 = new Date(Date.now() - 90 * 864e5).toISOString();
+
+  // 0) Mis propias ventas (las más fiables), último año.
+  const { data: mias } = await db().from("inventario")
+    .select("descripcion,precio_venta,fecha_venta")
+    .eq("personaje_id", personajeId).eq("tipo", tipo).eq("estado", "vendida").not("certificado", "is", null)
+    .gte("fecha_venta", new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10))
+    .order("fecha_venta", { ascending: false }).limit(30);
+  const mv = (mias ?? []).filter((x) => Number(x.precio_venta) > 0);
+  if (mv.length >= 2) {
+    return {
+      precio: Math.round(mediana(mv.map((x) => Number(x.precio_venta)))), fuente: "mis_ventas", nivel: 1, muestra: mv.length,
+      comps: mv.slice(0, 4).map((x) => ({ title: x.descripcion, price: Number(x.precio_venta), url: null, fecha: x.fecha_venta, fuente: "Mi venta" })),
+    };
+  }
   const niveles: [1 | 2, string[]][] = [[1, [tipo]], [2, PARECIDOS[tipo] ?? []]];
 
   for (const [nivel, tipos] of niveles) {
@@ -28,7 +44,7 @@ export async function resolverReferencia(personajeId: string, tipo: string, excl
       .from("listings")
       .select("external_id,title,price,url,sold_at")
       .eq("personaje_id", personajeId).in("tipo", tipos).eq("con_certificado", true)
-      .eq("status", "vendido").gte("sold_at", hace90)
+      .eq("status", "vendido").eq("descartado", false).gte("sold_at", hace90)
       .order("sold_at", { ascending: false }).limit(50);
     const v = (data ?? []).filter((x) => x.external_id !== excluirId && x.price > 0);
     if (v.length >= 2) {
@@ -44,7 +60,7 @@ export async function resolverReferencia(personajeId: string, tipo: string, excl
     .from("listings")
     .select("title,price,url,last_seen_at")
     .eq("platform", "ebay").eq("personaje_id", personajeId).eq("tipo", tipo).eq("con_certificado", true)
-    .eq("status", "activo").eq("currency", "EUR").limit(100);
+    .eq("status", "activo").eq("descartado", false).eq("currency", "EUR").limit(100);
   const e = (eb ?? []).filter((x) => x.price > 0);
   if (e.length >= 3) {
     const precios = e.map((x) => Number(x.price));

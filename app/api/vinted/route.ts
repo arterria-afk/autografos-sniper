@@ -7,7 +7,14 @@ import { alertar } from "@/lib/alertas";
 
 export const maxDuration = 60;
 
-type Item = { id: string | number; title: string; price: number; currency?: string; url: string; photo?: string | null; market?: string };
+// Muchas descripciones son "relleno de palabras clave" (PSA, autógrafo, Messi…): no sirven para decidir.
+function descripcionUtil(d?: string) {
+  if (!d) return "";
+  if (/no leer|tags?:|keywords|etiquetas|palabras clave/i.test(d)) return "";
+  return d.slice(0, 1500);
+}
+
+type Item = { id: string | number; title: string; description?: string; price: number; currency?: string; url: string; photo?: string | null; market?: string; seller?: string | null };
 
 // Recibe anuncios desde GitHub Actions. mode=live → alerta los nuevos; mode=sweep → solo guarda.
 export async function POST(req: Request) {
@@ -17,21 +24,23 @@ export async function POST(req: Request) {
   const rechazos: Record<string, number> = {};
   const filas = [];
   for (const it of items) {
-    const r = reconocer(it.title, personajes());
+    const r = reconocer(it.title, personajes(), descripcionUtil(it.description));
     if (!r.ok) { rechazos[r.motivo] = (rechazos[r.motivo] ?? 0) + 1; continue; }
     filas.push({
       external_id: `${platform}:${it.id}`, platform, market: it.market ?? "ES",
       title: it.title.slice(0, 300), price: it.price, currency: it.currency ?? "EUR",
-      url: it.url, photo_url: it.photo ?? null,
+      url: it.url, photo_url: it.photo ?? null, seller: it.seller ?? null,
       personaje_id: r.personaje.id, tipo: r.tipo, tamano: r.tamano,
       certificados: r.certificados, con_certificado: r.conCertificado, coa_generico: r.coaGenerico,
     });
   }
 
   // Inserta solo los nuevos; los que ya existían se marcan como vistos ahora.
-  const { data: nuevos, error } = filas.length
-    ? await db().from("listings").upsert(filas, { onConflict: "external_id", ignoreDuplicates: true }).select("*")
-    : { data: [], error: null };
+  const guardar = (rows: Record<string, unknown>[]) =>
+    db().from("listings").upsert(rows, { onConflict: "external_id", ignoreDuplicates: true }).select("*");
+  let { data: nuevos, error } = filas.length ? await guardar(filas) : { data: [], error: null };
+  // Si aún no se ha ejecutado la migración 002 (sin columna "seller"), guardar sin ella.
+  if (error && /seller/.test(error.message)) ({ data: nuevos, error } = await guardar(filas.map((f) => Object.fromEntries(Object.entries(f).filter(([k]) => k !== "seller")))));
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const nuevosIds = new Set((nuevos ?? []).map((n) => n.external_id));
   const vistos = filas.map((f) => f.external_id).filter((id) => !nuevosIds.has(id));
