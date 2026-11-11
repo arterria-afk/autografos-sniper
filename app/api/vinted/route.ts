@@ -44,11 +44,10 @@ export async function POST(req: Request) {
 
   let alertas = 0;
   if (mode === "live") {
-    for (const n of nuevos ?? []) {
-      if (!n.con_certificado) continue; // solo piezas certificadas
-      await alertar(n);
-      alertas++;
-    }
+    // Solo piezas certificadas; en paralelo (la revisión de la IA tarda unos segundos por anuncio).
+    const certificados = (nuevos ?? []).filter((n) => n.con_certificado);
+    await Promise.all(certificados.map((n) => alertar(n)));
+    alertas = certificados.length;
   }
   return NextResponse.json({ recibidos: items.length, reconocidos: filas.length, nuevos: nuevosIds.size, alertas, rechazos });
 }

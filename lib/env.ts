@@ -10,6 +10,7 @@ export const ENV_VARS = [
   { name: "APP_PASSWORD", desc: "Contraseña para entrar en la web (opcional; si no, usa ALERT_SECRET)", fase: 2, opcional: true },
   { name: "GIXEN_USER", desc: "Usuario de Gixen (solo con Gixen Mirror)", fase: 11, opcional: true },
   { name: "GIXEN_PASS", desc: "Contraseña de Gixen (solo con Gixen Mirror)", fase: 11, opcional: true },
+  { name: "ANTHROPIC_API_KEY", desc: "Clave de la API de Claude (segunda opinión con IA)", fase: 12, opcional: true },
   { name: "EBAY_CLIENT_ID", desc: "App ID de eBay Developers", fase: 4 },
   { name: "EBAY_CLIENT_SECRET", desc: "Cert ID de eBay Developers", fase: 4 },
 ] as const;

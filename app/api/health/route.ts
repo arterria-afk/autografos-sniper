@@ -11,6 +11,7 @@ async function migraciones() {
     return {
       "001_inicial": await ok("listings", "id") && await ok("deals", "id") && await ok("snipes", "id"),
       "002_negocio_y_votos": await ok("listings", "seller,descartado,descripcion") && await ok("deals", "fb,fb_motivo") && await ok("inventario", "id") && await ok("vendedores_bloqueados", "seller"),
+      "003_ia": await ok("deals", "ia,ia_descartado"),
     };
   } catch (e) {
     return { error: (e as Error).message };

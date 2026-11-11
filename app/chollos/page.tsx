@@ -5,12 +5,14 @@ import { fotoPublica } from "@/lib/fotos-url";
 import { FUENTE } from "@/lib/precio";
 import { Caja, Cert, eur, fecha, Foto, SinDatos } from "@/lib/ui";
 import { Votos } from "./votos";
+import { resumenIA, type VeredictoIA } from "@/lib/ia";
 
 export const dynamic = "force-dynamic";
 
 type Deal = {
   id: number; price: number; ref_price: number | null; ref_source: keyof typeof FUENTE | null; ref_sample: number | null;
   descuento: number | null; es_chollo: boolean; created_at: string; photo_url: string | null; fb: string | null; fb_motivo: string | null;
+  ia?: VeredictoIA | null; ia_descartado?: boolean;
   listings: { title: string; url: string; platform: string; personaje_id: string; tipo: string; certificados: string[]; photo_path: string | null; status: string; descartado: boolean } | null;
 };
 
@@ -24,11 +26,24 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
     .order("created_at", { ascending: false }).limit(100);
   if (f.solo === "chollos") q = q.eq("es_chollo", true);
   if (f.voto === "sin") q = q.is("fb", null);
-  if (f.voto === "mal") q = q.eq("fb", "mal");
-  else q = q.eq("listings.descartado", false);
+  if (f.voto !== "mal") q = q.eq("listings.descartado", false);
   if (f.p) q = q.eq("listings.platform", f.p);
   if (f.per) q = q.eq("listings.personaje_id", f.per);
-  const { data, error } = await q;
+  const { data: data0, error } = await q;
+  let data = data0;
+  // Con la migración 003: los que descartó la IA solo salen en "Descartados".
+  const conIA = !error;
+  if (conIA) {
+    const ids = (data ?? []).map((d) => d.id);
+    const { data: extra, error: e3 } = ids.length ? await db().from("deals").select("id,ia,ia_descartado").in("id", ids) : { data: [], error: null };
+    if (!e3) {
+      const m = new Map((extra ?? []).map((x) => [x.id, x]));
+      data = (data ?? []).map((d) => ({ ...d, ...m.get(d.id) }));
+      if (f.voto !== "mal") data = data.filter((d) => !(d as { ia_descartado?: boolean }).ia_descartado);
+    }
+  }
+  type Fila = { fb: string | null; ia_descartado?: boolean; listings: { descartado: boolean } | null };
+  if (f.voto === "mal") data = (data ?? []).filter((d) => { const x = d as unknown as Fila; return x.fb === "mal" || x.ia_descartado || x.listings?.descartado; });
   const deals = (data ?? []) as unknown as Deal[];
   const nombre = (id?: string) => personajes().find((p) => p.id === id)?.nombre ?? id;
   const url = (cambio: Record<string, string | undefined>) => {
@@ -85,6 +100,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
                     <Cert certs={d.listings?.certificados ?? []} />
                     {d.listings?.status && d.listings.status !== "activo" && <span className="text-[#e8c35a]">{d.listings.status}</span>}
                   </div>
+                  {d.ia && <p className={`text-xs ${d.ia_descartado ? "text-[#f06b5c]" : d.ia.riesgo === "medio" ? "text-[#e8c35a]" : "text-[#8fa394]"}`}>{d.ia_descartado ? "Descartado · " : ""}{resumenIA(d.ia)}</p>}
                   <Votos id={d.id} fb={d.fb} motivo={d.fb_motivo} />
                 </div>
               </li>
