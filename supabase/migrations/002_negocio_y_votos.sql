@@ -8,6 +8,7 @@ alter table deals add column if not exists fb_at timestamptz;
 -- Anuncios: vendedor (para bloquear) y descartado (marcado ❌).
 alter table listings add column if not exists seller text;
 alter table listings add column if not exists descartado boolean not null default false;
+alter table listings add column if not exists descripcion text;  -- para poder re-evaluar el certificado
 
 -- Vendedores bloqueados (se dejan de mostrar sus anuncios).
 create table if not exists vendedores_bloqueados (

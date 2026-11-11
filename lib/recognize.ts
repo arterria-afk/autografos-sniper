@@ -69,18 +69,35 @@ const LOTE = ["lote", "lot", "lots", "bundle", "job lot", "pack de", "set de", "
 // (una camiseta "replica" de aficionado puede estar firmada de verdad y certificada).
 const REPLICA = ["replica", "replika", "replique", "fake", "falso", "falsa", "imitacion"];
 
+// Autentificadores de firmas. OJO: "PSA 9" o "Beckett 8.5" es la NOTA de la tarjeta, no la firma.
 const CERTS: { cert: Certificado; frases: string[] }[] = [
-  { cert: "PSA/DNA", frases: ["psa / dna", "psa dna", "psadna", "psa"] },
-  { cert: "Beckett", frases: ["beckett", "bas coa", "bas cert", "bas certified", "bas authenticated", "bas witness", "bas witnessed", "bas sticker", "bgs", "bas loa"] },
+  { cert: "PSA/DNA", frases: ["psa / dna", "psa dna", "psadna", "psa authentic", "psa authenticated", "psa auth", "psa coa", "psa loa",
+    "psa certified", "psa certificado", "psa certificada", "certificado psa", "certificada psa", "certificado por psa", "psa autograph", "psa auto", "psa encapsulated"] },
+  { cert: "Beckett", frases: ["bas coa", "bas cert", "bas certified", "bas authenticated", "bas witness", "bas witnessed", "bas sticker", "bas loa",
+    "beckett authentication", "beckett authenticated", "beckett coa", "beckett loa", "beckett witness", "beckett witnessed", "beckett certificado",
+    "certificado beckett", "certificada beckett", "certificacion beckett", "beckett certified", "beckett authentic"] },
   { cert: "JSA", frases: ["jsa", "james spence"] },
-  { cert: "Upper Deck", frases: ["upper deck authenticated", "uda", "upper deck"] },
+  { cert: "Upper Deck", frases: ["upper deck authenticated", "upper deck authentication", "uda"] },
   { cert: "Fanatics", frases: ["fanatics", "fanatics authentic"] },
 ];
+// "psa" / "beckett" a secas cuentan solo si NO van seguidos de una nota (número).
+const sueltoSinNota = (t: string, marca: string) => new RegExp(` ${marca} (?!(\\d|gem|mint|grade|graded|nm)\\b)`).test(t) || t.endsWith(` ${marca} `);
+
+// Descripción con relleno de palabras clave → no sirve para decidir.
+const RELLENO = ["psa", "beckett", "jsa", "panini", "topps", "leaf", "futera", "upper deck", "fanatics", "pokemon", "charizard", "pikachu", "one piece"];
+export function descripcionUtil(d?: string | null): string {
+  if (!d) return "";
+  if (/no leer|tags?:|keywords|etiquetas|palabras clave/i.test(d)) return "";
+  const n = normalizar(d);
+  if (RELLENO.filter((w) => tiene(n, w)).length >= 4) return "";
+  return d.slice(0, 1500);
+}
+
 const COA_GENERICO = ["coa", "loa", "certificado", "certificate", "certificat", "certificato", "zertifikat", "echtheitszertifikat"];
 const COA_NEGADO = ["no coa", "without coa", "sin coa", "sin certificado", "no certificate", "ohne zertifikat", "senza certificato"];
 
 const TIPOS: { tipo: Tipo; frases: string[] }[] = [
-  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cartas", "cromo", "trading card", "rookie", "rc", "topps", "leaf", "futera", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina", "carte"] },
+  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cartas", "tarjeta", "tarjetas", "cromo", "trading card", "rookie", "rc", "topps", "leaf", "futera", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina", "carte"] },
   { tipo: "camiseta", frases: ["jersey", "camiseta", "shirt", "maillot", "maglia", "trikot", "camisola", "kit"] },
   { tipo: "balon", frases: ["ball", "balon", "basketball", "football ball", "soccer ball", "pallone", "fussball", "ballon", "bola"] },
   { tipo: "vinilo", frases: ["vinyl", "vinilo", "lp", "record", "album", "disco", "vinile", "schallplatte", "cd"] },
@@ -119,7 +136,7 @@ export function parsePersonajes(txt: string): Personaje[] {
 // ---------- reconocedor ----------
 export function reconocer(titulo: string, personajes: Personaje[], descripcion = ""): Resultado {
   const t = normalizar(titulo);
-  const todo = normalizar(titulo + " " + descripcion);
+  const todo = normalizar(titulo + " " + descripcionUtil(descripcion));
 
   // 1) Personaje: exactamente uno.
   const encontrados = personajes.filter((p) => algun(t, p.alias));
@@ -142,14 +159,17 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
 
   // 4) Certificados.
   const certificados = CERTS.filter((c) => algun(todo, c.frases)).map((c) => c.cert);
+  if (!certificados.includes("PSA/DNA") && sueltoSinNota(todo, "psa")) certificados.push("PSA/DNA");
+  if (!certificados.includes("Beckett") && sueltoSinNota(todo, "beckett")) certificados.push("Beckett");
   const tipo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
   // Fabricantes de tarjetas (Panini, Topps, Leaf, Futera): un cromo firmado a mano NO está certificado.
   // Solo cuenta "<marca> authentic" o una TARJETA con autógrafo de fábrica ("auto", "on card"…).
   const autoFabrica = tipo === "tarjeta" && algun(t, ["auto", "autos", "autograph", "autographs", "autograf", "rpa", "on card", "on card auto", "sticker auto", "signature series", "signatures"]) ||
     // "autógrafo" + numerada de fábrica (/7, /25, /99…) = autógrafo de fábrica
     (tipo === "tarjeta" && algun(t, ["autografo", "autografiada", "autografata", "autographed", "signed", "firmada", "firmado"]) && / \/ \d{1,4} /.test(t));
-  for (const marca of ["Panini", "Topps", "Leaf", "Futera"] as const) {
+  for (const marca of ["Panini", "Topps", "Leaf", "Futera", "Upper Deck"] as const) {
     const m = marca.toLowerCase();
+    if (certificados.includes(marca)) continue;
     if (tiene(todo, `${m} authentic`) || (tiene(t, m) && autoFabrica)) certificados.push(marca);
   }
   const conCertificado = certificados.length > 0;

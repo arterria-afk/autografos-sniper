@@ -9,13 +9,15 @@ export const maxDuration = 60;
 // Vuelve a pasar el reconocedor por todo lo guardado: borra lo que ahora se rechaza y corrige el resto.
 export async function POST(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
-  const filas = await fetchAll<{ id: number; title: string; personaje_id: string; tipo: string; certificados: string[]; con_certificado: boolean }>(
-    (a, b) => db().from("listings").select("id,title,personaje_id,tipo,certificados,con_certificado").order("id").range(a, b),
-  );
+  type F = { id: number; title: string; descripcion?: string | null; personaje_id: string; tipo: string; certificados: string[]; con_certificado: boolean };
+  const campos = "id,title,personaje_id,tipo,certificados,con_certificado";
+  let filas: F[];
+  try { filas = await fetchAll<F>((a, b) => db().from("listings").select(campos + ",descripcion").order("id").range(a, b)); }
+  catch { filas = await fetchAll<F>((a, b) => db().from("listings").select(campos).order("id").range(a, b)); } // sin migración 002
   const borrar: number[] = [], motivos: Record<string, number> = {}, ejemplos: string[] = [];
   let corregidos = 0;
   for (const l of filas) {
-    const r = reconocer(l.title, personajes());
+    const r = reconocer(l.title, personajes(), l.descripcion ?? "");
     if (!r.ok) {
       borrar.push(l.id);
       motivos[r.motivo] = (motivos[r.motivo] ?? 0) + 1;
