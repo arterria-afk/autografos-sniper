@@ -8,10 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Estado de la web (espera a que Vercel publique)
-        env:
-          SITE_URL: ${{ vars.SITE_URL }}
+      - name: ¿Responde la API de Gixen? (usuario inventado)
         run: |
-          sleep 150
-          out=$(curl -sS "$SITE_URL/api/health" | tr '\n%' '  ')
-          echo "::notice title=health::${out:0:3900}"
+          out=$(curl -sS -w " [HTTP %{http_code}]" "https://www.gixen.com/api.php?username=prueba_inexistente_xyz&password=nada&notags=1&listsnipesmain=1" | tr '\n\r%' '   ')
+          echo "::notice title=gixen-api::${out:0:1500}"

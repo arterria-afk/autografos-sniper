@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { gixenActivo, listar, mensajeError, programar, quitar } from "@/lib/gixen";
 import { db } from "@/lib/supabase";
 import { reconocer } from "@/lib/recognize";
 import { personajes } from "@/lib/personajes";
@@ -19,12 +21,70 @@ export async function crear(form: FormData) {
   const puja = num(form.get("max_bid"));
   if (!id || !puja) return;
   const fin = String(form.get("ends_at") ?? "");
-  await db().from("snipes").insert({
+  const { data } = await db().from("snipes").insert({
     ebay_item_id: id, url: `https://www.ebay.es/itm/${id}`, max_bid: puja,
     title: String(form.get("title") ?? "").trim() || null, notas: String(form.get("notas") ?? "").trim() || null,
     ends_at: fin ? new Date(fin).toISOString() : null,
-  });
+  }).select("id").single();
   revalidatePath("/snipes");
+  // Con Gixen conectado, se programa en el momento (salvo que se desmarque la casilla).
+  if (data && gixenActivo() && form.get("enviar") === "1") await enviar(data.id);
+}
+
+async function enviar(id: number) {
+  const { data: s } = await db().from("snipes").select("ebay_item_id,max_bid").eq("id", id).single();
+  if (!s) return;
+  let msg = "";
+  try {
+    await programar(s.ebay_item_id, Number(s.max_bid));
+    await db().from("snipes").update({ en_gixen: true }).eq("id", id);
+    msg = `✅ Snipe del artículo ${s.ebay_item_id} programado en Gixen (${s.max_bid} €).`;
+  } catch (e) { msg = "❌ " + mensajeError(e); }
+  revalidatePath("/snipes");
+  redirect("/snipes?msg=" + encodeURIComponent(msg));
+}
+
+export async function enviarGixen(form: FormData) {
+  await enviar(Number(form.get("id")));
+}
+
+export async function quitarGixen(form: FormData) {
+  const id = Number(form.get("id"));
+  const { data: s } = await db().from("snipes").select("ebay_item_id").eq("id", id).single();
+  if (!s) return;
+  let msg = "";
+  try {
+    await quitar(s.ebay_item_id);
+    await db().from("snipes").update({ en_gixen: false }).eq("id", id);
+    msg = `Snipe del artículo ${s.ebay_item_id} quitado de Gixen.`;
+  } catch (e) { msg = "❌ " + mensajeError(e); }
+  revalidatePath("/snipes");
+  redirect("/snipes?msg=" + encodeURIComponent(msg));
+}
+
+// Trae los snipes de Gixen: actualiza título y fecha de fin, importa los que no estén y marca qué sigue en Gixen.
+export async function sincronizar() {
+  let msg = "";
+  try {
+    const lista = await listar();
+    const { data: locales } = await db().from("snipes").select("id,ebay_item_id,title,en_gixen,estado");
+    const porItem = new Map((locales ?? []).map((l) => [l.ebay_item_id, l]));
+    let nuevos = 0;
+    for (const g of lista) {
+      const l = porItem.get(g.itemid);
+      const datos = { ends_at: g.fin?.toISOString() ?? null, en_gixen: g.estado === "programado" };
+      if (l) await db().from("snipes").update({ ...datos, ...(l.title ? {} : { title: g.titulo || null }) }).eq("id", l.id);
+      else {
+        await db().from("snipes").insert({ ...datos, ebay_item_id: g.itemid, url: `https://www.ebay.es/itm/${g.itemid}`, max_bid: g.maxbid, title: g.titulo || null });
+        nuevos++;
+      }
+    }
+    const enGixen = new Set(lista.map((g) => g.itemid));
+    for (const l of locales ?? []) if (l.en_gixen && !enGixen.has(l.ebay_item_id)) await db().from("snipes").update({ en_gixen: false }).eq("id", l.id);
+    msg = `🔄 Sincronizado: ${lista.length} snipes en Gixen${nuevos ? `, ${nuevos} importados` : ""}.`;
+  } catch (e) { msg = "❌ " + mensajeError(e); }
+  revalidatePath("/snipes");
+  redirect("/snipes?msg=" + encodeURIComponent(msg));
 }
 
 export async function actualizar(form: FormData) {
