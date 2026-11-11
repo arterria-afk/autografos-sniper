@@ -25,6 +25,22 @@ export function personajes() {
     .filter((l) => l && !l.startsWith("#")).map((l) => { const [id, nombre] = l.split("|").map((x) => x.trim()); return { id, nombre }; });
 }
 
+export function jugadores() {
+  return readFileSync("data/jugadores.txt", "utf8").split("\n").map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("#")).map((l) => { const [id, nombre] = l.split("|").map((x) => x.trim()); return { id, nombre }; });
+}
+
+// Búsquedas de cada pasada: autógrafos (sin precio mínimo) + cartas (desde CARTAS_MIN €).
+export function busquedas() {
+  const palabras = (process.env.PALABRAS ?? "firmado,autografo,signed").split(",");
+  const cartas = (process.env.PALABRAS_CARTAS ?? "topps,panini,psa").split(",");
+  const min = Number(process.env.CARTAS_MIN ?? 25);
+  return [
+    ...personajes().flatMap((p) => palabras.map((w) => ({ texto: `${p.nombre} ${w}`, min: 0 }))),
+    ...jugadores().flatMap((j) => cartas.map((w) => ({ texto: `${j.nombre} ${w}`, min }))),
+  ];
+}
+
 // Bucle: repite una pasada cada EVERY_MINUTES durante LOOP_MINUTES (el cron de GitHub se retrasa).
 export async function bucle(pasada) {
   const loop = Number(process.env.LOOP_MINUTES ?? 0), every = Number(process.env.EVERY_MINUTES ?? 15);

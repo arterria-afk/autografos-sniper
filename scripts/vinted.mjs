@@ -64,9 +64,9 @@ export function parsearCatalogo(html) {
 }
 
 // Anuncios más nuevos de una búsqueda (página de resultados, como haría una persona).
-export async function buscar(texto, page = 1) {
+export async function buscar(texto, page = 1, min = 0) {
   const u = new URL(BASE + "/catalog");
-  u.search = new URLSearchParams({ search_text: texto, order: "newest_first", ...(page > 1 ? { page: String(page) } : {}) }).toString();
+  u.search = new URLSearchParams({ search_text: texto, order: "newest_first", ...(min > 0 ? { price_from: String(min) } : {}), ...(page > 1 ? { page: String(page) } : {}) }).toString();
   const r = await get(u.toString(), "text/html");
   if (!r.ok) { console.warn(`búsqueda "${texto}" → ${r.status}`); return []; }
   return parsearCatalogo(await r.text());

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "probar": "node scripts/probar-reconocedor.mts"
+    "probar": "node scripts/probar-reconocedor.mts",
+    "probar-cartas": "node scripts/probar-cartas.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

@@ -5,22 +5,26 @@ import { copiarFoto } from "@/lib/fotos";
 
 export const maxDuration = 60;
 
-// GET → cola de anuncios de Vinted a revisar (¿se ha vendido?).
+// GET → cola de anuncios a revisar (¿se ha vendido?). ?platform=vinted|wallapop
 export async function GET(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
-  const limite = Math.min(Number(new URL(req.url).searchParams.get("n") ?? 60), 200);
+  const sp = new URL(req.url).searchParams;
+  const limite = Math.min(Number(sp.get("n") ?? 60), 200);
+  const platform = sp.get("platform") ?? "vinted";
   const hace3h = new Date(Date.now() - 3 * 3600e3).toISOString();
   const hace2h = new Date(Date.now() - 2 * 3600e3).toISOString();
-  const base = () => db().from("listings").select("external_id,url").eq("platform", "vinted").in("status", ["activo", "reservado"]);
+  const base = () => db().from("listings").select("external_id,url").eq("platform", platform).in("status", ["activo", "reservado"]);
 
-  // 1) Certificados nunca revisados · 2) desaparecidos hace poco de las búsquedas · 3) los revisados hace más tiempo.
-  const [a, b, c] = await Promise.all([
+  // 1) Certificados y cartas nunca revisados · 2) desaparecidos hace poco de las búsquedas · 3) los revisados hace más tiempo.
+  const [a, a2, b, c] = await Promise.all([
     base().eq("con_certificado", true).is("checked_at", null).limit(limite),
+    base().eq("kind", "carta").is("checked_at", null).limit(limite), // sin migración 004 da error → se ignora
     base().lt("last_seen_at", hace2h).or(`checked_at.is.null,checked_at.lt.${hace3h}`).order("last_seen_at", { ascending: false }).limit(limite),
     base().lt("checked_at", hace3h).order("checked_at", { ascending: true }).limit(limite),
   ]);
   const vistos = new Set<string>();
-  const cola = [...(a.data ?? []), ...(b.data ?? []), ...(c.data ?? [])].filter((x) => !vistos.has(x.external_id) && vistos.add(x.external_id)).slice(0, limite);
+  const cola = [...(a.data ?? []), ...(a2.error ? [] : a2.data ?? []), ...(b.data ?? []), ...(c.data ?? [])]
+    .filter((x) => !vistos.has(x.external_id) && vistos.add(x.external_id)).slice(0, limite);
   return NextResponse.json({ cola });
 }
 

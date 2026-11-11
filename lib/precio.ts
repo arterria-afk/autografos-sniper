@@ -6,7 +6,7 @@ const PARECIDOS: Record<string, string[]> = {
 };
 
 export type Comp = { title: string; price: number; url: string | null; fecha: string | null; fuente: string };
-export type Referencia = { precio: number; fuente: "mis_ventas" | "vinted_sold" | "ebay"; nivel: 1 | 2; muestra: number; comps: Comp[] };
+export type Referencia = { precio: number; fuente: "mis_ventas" | "vinted_sold" | "ventas" | "ebay"; nivel: 1 | 2; muestra: number; comps: Comp[] };
 
 const mediana = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b), m = Math.floor(s.length / 2);
@@ -17,7 +17,7 @@ const percentil = (xs: number[], p: number) => {
   return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
 };
 
-export const FUENTE: Record<Referencia["fuente"], string> = { mis_ventas: "mis ventas", vinted_sold: "ventas Vinted", ebay: "eBay en venta" };
+export const FUENTE: Record<Referencia["fuente"], string> = { mis_ventas: "mis ventas", vinted_sold: "ventas Vinted", ventas: "ventas reales", ebay: "eBay en venta" };
 
 // Cascada: mis ventas → ventas reales Vinted (mismo tipo → tipo parecido) → anuncios eBay → "no sé".
 export async function resolverReferencia(personajeId: string, tipo: string, excluirId?: string): Promise<Referencia | null> {
@@ -70,6 +70,34 @@ export async function resolverReferencia(personajeId: string, tipo: string, excl
     };
   }
   return null; // Mejor no dar precio que dar uno malo.
+}
+
+// CARTAS: solo se compara con la MISMA carta (misma colección, temporada, paralela, numeración y nota).
+export async function referenciaCarta(clave: string, excluirId?: string): Promise<Referencia | null> {
+  const hace120 = new Date(Date.now() - 120 * 864e5).toISOString();
+  const { data, error } = await db().from("listings")
+    .select("external_id,title,price,url,sold_at,platform")
+    .eq("carta_clave", clave).eq("status", "vendido").eq("descartado", false).gte("sold_at", hace120)
+    .order("sold_at", { ascending: false }).limit(50);
+  if (error) return null;
+  const v = (data ?? []).filter((x) => x.external_id !== excluirId && x.price > 0);
+  if (v.length >= 2) {
+    return {
+      precio: Math.round(mediana(v.map((x) => Number(x.price)))), fuente: "ventas", nivel: 1, muestra: v.length,
+      comps: v.slice(0, 4).map((x) => ({ title: x.title, price: Number(x.price), url: x.url, fecha: x.sold_at, fuente: `${x.platform} vendido` })),
+    };
+  }
+  const { data: eb } = await db().from("listings").select("title,price,url")
+    .eq("platform", "ebay").eq("carta_clave", clave).eq("status", "activo").eq("currency", "EUR").limit(100);
+  const e = (eb ?? []).filter((x) => x.price > 0);
+  if (e.length >= 3) {
+    const precios = e.map((x) => Number(x.price));
+    return {
+      precio: Math.round(e.length >= 4 ? percentil(precios, 25) : mediana(precios)), fuente: "ebay", nivel: 1, muestra: e.length,
+      comps: e.sort((a, b) => a.price - b.price).slice(0, 4).map((x) => ({ title: x.title, price: Number(x.price), url: x.url, fecha: null, fuente: "eBay (en venta)" })),
+    };
+  }
+  return null;
 }
 
 export type Juicio = { esChollo: boolean; descuento: number | null; aviso: string | null };

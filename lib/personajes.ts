@@ -7,3 +7,10 @@ export function personajes(): Personaje[] {
   if (!cache) cache = parsePersonajes(readFileSync(path.join(process.cwd(), "data/personajes.txt"), "utf8"));
   return cache;
 }
+
+import { parseJugadores, type Jugador } from "./cartas";
+let cacheJ: Jugador[] | null = null;
+export function jugadores(): Jugador[] {
+  if (!cacheJ) cacheJ = parseJugadores(readFileSync(path.join(process.cwd(), "data/jugadores.txt"), "utf8"));
+  return cacheJ;
+}

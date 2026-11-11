@@ -1,0 +1,18 @@
+# Jugadores para CARTAS. Una línea:  id | Nombre | tipo | alias separados por comas
+# tipo: actual | leyenda. Evita alias ambiguos ("ronaldo" solo es ambiguo: CR7 vs. Nazário).
+leo-messi | Leo Messi | actual | messi, lionel messi, leo messi
+lamine-yamal | Lamine Yamal | actual | lamine yamal, yamal, lamine, lamine jamal
+max-dowman | Max Dowman | actual | max dowman, dowman
+fermin-lopez | Fermín López | actual | fermin lopez, fermin
+cristiano-ronaldo | Cristiano Ronaldo | actual | cristiano ronaldo, cristiano, cr7, c ronaldo
+kylian-mbappe | Kylian Mbappé | actual | mbappe, kylian mbappe, k mbappe
+diego-maradona | Diego Maradona | leyenda | maradona, diego maradona, diego armando maradona
+pele | Pelé | leyenda | pele, edson arantes
+ronaldinho | Ronaldinho | leyenda | ronaldinho, ronaldinho gaucho
+zinedine-zidane | Zinedine Zidane | leyenda | zidane, zinedine zidane
+johan-cruyff | Johan Cruyff | leyenda | cruyff, johan cruyff, cruijff
+ronaldo-nazario | Ronaldo Nazário | leyenda | ronaldo nazario, r9, ronaldo fenomeno, ronaldo luis nazario
+# Baloncesto (sus cartas firmadas van aquí, no a Autógrafos)
+kobe-bryant | Kobe Bryant | leyenda | kobe bryant, kobe
+michael-jordan | Michael Jordan | leyenda | michael jordan, micheal jordan, michael jordon
+lebron-james | LeBron James | actual | lebron james, lebron

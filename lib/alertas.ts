@@ -1,12 +1,13 @@
 import { db } from "./supabase";
-import { resolverReferencia, juzgar } from "./precio";
+import { referenciaCarta, resolverReferencia, juzgar } from "./precio";
 import { enviarAlerta, esc } from "./telegram";
-import { personajes } from "./personajes";
+import { jugadores, personajes } from "./personajes";
 import { vendedorBloqueado } from "./votos";
 import { FUENTE } from "./precio";
 import { descartarPorIA, resumenIA, revisar } from "./ia";
 
-type Row = { id: number; external_id: string; platform: string; seller?: string | null; descripcion?: string | null; title: string; price: number; currency: string; url: string; photo_url: string | null; personaje_id: string; tipo: string; tamano: string | null; certificados: string[] };
+type Row = { id: number; external_id: string; platform: string; seller?: string | null; descripcion?: string | null; title: string; price: number; currency: string; url: string; photo_url: string | null; personaje_id: string; tipo: string; tamano: string | null; certificados: string[];
+  kind?: string; carta_clave?: string | null; carta_desc?: string | null };
 
 const PLAT: Record<string, string> = { vinted: "Vinted", ebay: "eBay", wallapop: "Wallapop", etsy: "Etsy", catawiki: "Catawiki" };
 const eur = (n: number, c = "EUR") => `${n.toLocaleString("es-ES", { maximumFractionDigits: 2 })} ${c === "EUR" ? "€" : c}`;
@@ -14,12 +15,13 @@ const eur = (n: number, c = "EUR") => `${n.toLocaleString("es-ES", { maximumFrac
 // Alerta de un anuncio NUEVO y certificado: chollo si hay referencia y descuento.
 export async function alertar(l: Row) {
   if (await vendedorBloqueado(l.platform, l.seller)) return;
-  const ref = await resolverReferencia(l.personaje_id, l.tipo, l.external_id);
+  const esCarta = l.kind === "carta" && !!l.carta_clave;
+  const ref = esCarta ? await referenciaCarta(l.carta_clave!, l.external_id) : await resolverReferencia(l.personaje_id, l.tipo, l.external_id);
   const j = juzgar(Number(l.price), ref);
-  const nombre = personajes().find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id;
+  const nombre = (esCarta ? jugadores() : personajes()).find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id;
 
   // Segunda opinión de la IA (si está activada), solo para los posibles chollos: foto + descripción.
-  const ia = !j.esChollo ? null : await revisar({
+  const ia = !j.esChollo || esCarta ? null : await revisar({
     titulo: l.title, descripcion: l.descripcion, precio: Number(l.price), plataforma: PLAT[l.platform] ?? l.platform,
     personaje: nombre, certificados: l.certificados, foto: l.photo_url, referencia: ref?.precio ?? null,
   });
@@ -40,10 +42,10 @@ export async function alertar(l: Row) {
   // (ALERTAS_TELEGRAM=todo vuelve al comportamiento anterior.)
   if (!j.esChollo && process.env.ALERTAS_TELEGRAM !== "todo") return;
 
-  const cab = j.esChollo ? `🔥 <b>CHOLLO −${j.descuento}%</b>` : "🆕 <b>Nuevo con certificado</b>";
+  const cab = j.esChollo ? `🔥 <b>CHOLLO −${j.descuento}%</b>${esCarta ? " 🃏" : ""}` : esCarta ? "🆕 <b>Carta nueva</b>" : "🆕 <b>Nuevo con certificado</b>";
   const lineas = [
     cab,
-    `<b>${esc(nombre)}</b> · ${esc(l.tipo)}${l.tamano ? " " + l.tamano : ""} · ${esc(l.certificados.join(", "))}`,
+    esCarta ? `<b>${esc(l.carta_desc ?? nombre)}</b>` : `<b>${esc(nombre)}</b> · ${esc(l.tipo)}${l.tamano ? " " + l.tamano : ""} · ${esc(l.certificados.join(", "))}`,
     esc(l.title),
     `💶 <b>${eur(Number(l.price), l.currency)}</b> en ${PLAT[l.platform] ?? l.platform}`,
   ];
