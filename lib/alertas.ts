@@ -47,14 +47,21 @@ export async function alertar(l: Row) {
     cab,
     esCarta ? `<b>${esc(l.carta_desc ?? nombre)}</b>` : `<b>${esc(nombre)}</b> · ${esc(l.tipo)}${l.tamano ? " " + l.tamano : ""} · ${esc(l.certificados.join(", "))}`,
     esc(l.title),
-    `💶 <b>${eur(Number(l.price), l.currency)}</b> en ${PLAT[l.platform] ?? l.platform}`,
+    `💶 Precio: <b>${eur(Number(l.price), l.currency)}</b> en ${PLAT[l.platform] ?? l.platform}`,
   ];
   if (ref) {
-    lineas.push(`📊 Referencia: ${eur(ref.precio)} (${FUENTE[ref.fuente]}, ${ref.muestra} muestras${ref.nivel > 1 ? ", tipo parecido" : ""})`);
+    const dif = Number(ref.precio) - Number(l.price);
+    const que = esCarta ? "de esta misma carta" : "de piezas parecidas";
+    lineas.push(
+      dif >= 0
+        ? `📉 <b>${j.descuento}% por DEBAJO del mercado</b> · te ahorras ~${eur(dif)}`
+        : `📈 <b>${-(j.descuento ?? 0)}% por ENCIMA del mercado</b>`,
+      `📊 Mercado: ~<b>${eur(ref.precio)}</b> (mediana de ${ref.muestra} ${FUENTE[ref.fuente]} ${que}${ref.nivel > 1 ? ", tipo parecido" : ""}):`,
+    );
     for (const c of ref.comps.slice(0, 4))
-      lineas.push(c.url ? `• <a href="${esc(c.url)}">${eur(c.price)}</a> ${esc(c.title.slice(0, 50))}` : `• ${eur(c.price)} ${esc(c.title.slice(0, 50))}`);
+      lineas.push(c.url ? `   • <a href="${esc(c.url)}">${eur(c.price)}</a> ${esc(c.title.slice(0, 45))}` : `   • ${eur(c.price)} ${esc(c.title.slice(0, 45))}`);
   } else {
-    lineas.push("📊 Sin referencia fiable todavía.");
+    lineas.push("📊 Sin datos de mercado todavía: no sé si es buen precio.");
   }
   if (j.aviso) lineas.push(`⚠️ ${esc(j.aviso)}`);
   if (ia) lineas.push(esc(resumenIA(ia)));
