@@ -6,21 +6,14 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Migraciones
-        env:
-          SITE_URL: ${{ vars.SITE_URL }}
-        run: |
-          out=$(curl -sS "$SITE_URL/api/health" | tr '\n%' '  ')
-          echo "::notice title=health::${out:0:1500}"
-      - name: Pasada real de Wallapop (autógrafos + cartas)
-        run: node scripts/wallapop-live.mjs
+      - name: Entrada de anuncios y eBay
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-          LOOP_MINUTES: "0"
+        run: |
+          a=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" -H "content-type: application/json" -d '{"items":[],"mode":"sweep"}' "$SITE_URL/api/vinted" | tr '\n%' '  ')
+          echo "::notice title=api-vinted::${a:0:800}"
+          b=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" -H "content-type: application/json" -d '{"q":"messi topps","mercado":"EBAY_ES"}' "$SITE_URL/api/ebay" | tr '\n%' '  ')
+          echo "::notice title=api-ebay::${b:0:800}"
