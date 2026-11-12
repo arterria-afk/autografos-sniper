@@ -1,0 +1,22 @@
+name: eBay
+on:
+  schedule:
+    - cron: "13 */2 * * *"
+  workflow_dispatch:
+concurrency:
+  group: ebay-live
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/ebay-live.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          LOOP_MINUTES: "0"
