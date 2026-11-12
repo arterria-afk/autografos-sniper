@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 type Pieza = {
   id: number; personaje_id: string | null; descripcion: string; tipo: string | null; certificado: string | null; cert_numero: string | null;
-  foto_path: string | null; comprado_en: string | null; fecha_compra: string; precio_compra: number; gastos_compra: number;
+  foto_path: string | null; comprado_en: string | null; fecha_compra: string | null; precio_compra: number; gastos_compra: number;
   estado: string; vendido_en: string | null; fecha_venta: string | null; precio_venta: number | null; gastos_venta: number; notas: string | null;
 };
 
@@ -17,12 +17,12 @@ const TIPOS = ["foto", "camiseta", "balon", "tarjeta", "vinilo", "poster", "zapa
 const CERTS = ["PSA/DNA", "Beckett", "JSA", "Upper Deck", "Panini", "Topps", "Leaf", "Futera", "Fanatics", "Otro COA"];
 const coste = (p: Pieza) => Number(p.precio_compra) + Number(p.gastos_compra);
 const beneficio = (p: Pieza) => Number(p.precio_venta ?? 0) - Number(p.gastos_venta) - coste(p);
-const dias = (desde: string, hasta?: string | null) => Math.max(0, Math.round(((hasta ? new Date(hasta) : new Date()).getTime() - new Date(desde).getTime()) / 864e5));
+const dias = (desde: string | null, hasta?: string | null) => !desde ? null : Math.max(0, Math.round(((hasta ? new Date(hasta) : new Date()).getTime() - new Date(desde).getTime()) / 864e5));
 const hoy = () => new Date().toISOString().slice(0, 10);
 
 export default async function Negocio({ searchParams }: { searchParams: Promise<{ ver?: string }> }) {
   const { ver = "stock" } = await searchParams;
-  const { data, error } = await db().from("inventario").select("*").order("fecha_compra", { ascending: false }).limit(1000);
+  const { data, error } = await db().from("inventario").select("*").order("fecha_compra", { ascending: false, nullsFirst: false }).limit(1000);
   const piezas = (data ?? []) as Pieza[];
   const stock = piezas.filter((p) => p.estado === "en_stock");
   const vendidas = piezas.filter((p) => p.estado === "vendida");
@@ -111,15 +111,15 @@ export default async function Negocio({ searchParams }: { searchParams: Promise<
                         {nombre(p.personaje_id)}{p.tipo ? ` · ${p.tipo}` : ""} · {p.certificado ? <span className="text-[#5cf08a]">✔ {p.certificado}{p.cert_numero ? ` #${p.cert_numero}` : ""}</span> : <span className="text-[#f06b5c]">sin certificado</span>}
                       </p>
                       <p className="text-xs text-[#8fa394]">
-                        Compra {p.fecha_compra}{p.comprado_en ? ` en ${p.comprado_en}` : ""}: <b className="text-[#d7e3d9]">{eur(coste(p))}</b>
+                        Compra {p.fecha_compra ?? "(sin fecha)"}{p.comprado_en ? ` en ${p.comprado_en}` : ""}: <b className="text-[#d7e3d9]">{eur(coste(p))}</b>
                         {Number(p.gastos_compra) > 0 && ` (${eur(p.precio_compra)} + ${eur(p.gastos_compra)} gastos)`}
-                        {p.estado === "en_stock" && ` · ${dias(p.fecha_compra)} días en stock`}
+                        {p.estado === "en_stock" && dias(p.fecha_compra) != null && ` · ${dias(p.fecha_compra)} días en stock`}
                       </p>
                       {p.estado === "vendida" && (
                         <p className="text-xs text-[#8fa394]">
-                          Venta {p.fecha_venta}{p.vendido_en ? ` en ${p.vendido_en}` : ""}: <b className="text-[#d7e3d9]">{eur(p.precio_venta)}</b>
+                          Venta {p.fecha_venta ?? "(sin fecha)"}{p.vendido_en ? ` en ${p.vendido_en}` : ""}: <b className="text-[#d7e3d9]">{eur(p.precio_venta)}</b>
                           {" → "}<b className={beneficio(p) >= 0 ? "text-[#5cf08a]" : "text-[#f06b5c]"}>{beneficio(p) >= 0 ? "+" : ""}{eur(beneficio(p))}</b>
-                          {coste(p) > 0 && ` (${Math.round((beneficio(p) / coste(p)) * 100)}%)`} · {dias(p.fecha_compra, p.fecha_venta)} días
+                          {coste(p) > 0 && ` (${Math.round((beneficio(p) / coste(p)) * 100)}%)`}{dias(p.fecha_compra, p.fecha_venta) != null && ` · ${dias(p.fecha_compra, p.fecha_venta)} días`}
                         </p>
                       )}
                       {p.notas && <p className="text-xs">📝 {p.notas}</p>}
