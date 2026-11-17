@@ -13,6 +13,7 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
+          sleep 150
           h=$(curl -sS "$SITE_URL/api/health" | tr '\n%' '  ')
           echo "::notice title=health::${h:0:1500}"
           for q in "Leo Messi topps|EBAY_ES|25" "Lamine Yamal topps|EBAY_GB|25" "Michael Jordan signed|EBAY_US|0"; do

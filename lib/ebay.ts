@@ -10,11 +10,21 @@ export const MERCADOS: Record<string, { moneda: string; dominio: string }> = {
   EBAY_US: { moneda: "USD", dominio: "ebay.com" },
 };
 
+// Pistas para diagnosticar claves SIN revelarlas: tipo (producción/sandbox), longitud y espacios.
+export function pistasClaves() {
+  const id = process.env.EBAY_CLIENT_ID ?? "", sec = process.env.EBAY_CLIENT_SECRET ?? "";
+  const tipo = (v: string) => (/PRD/.test(v) ? "produccion" : /SBX/.test(v) ? "SANDBOX" : "desconocido");
+  return {
+    client_id: { tipo: tipo(id), largo: id.length, espacios: id !== id.trim(), parece_cert_id: /^PRD-|^SBX-/.test(id.trim()) },
+    client_secret: { tipo: tipo(sec), largo: sec.length, espacios: sec !== sec.trim(), parece_app_id: /-PRD-|-SBX-/.test(sec.trim()) },
+  };
+}
+
 // ---------- token de aplicación (client credentials), válido ~2 h ----------
 let token: { valor: string; hasta: number } | null = null;
 async function tokenApp(): Promise<string> {
   if (token && Date.now() < token.hasta) return token.valor;
-  const basic = Buffer.from(`${process.env.EBAY_CLIENT_ID}:${process.env.EBAY_CLIENT_SECRET}`).toString("base64");
+  const basic = Buffer.from(`${(process.env.EBAY_CLIENT_ID ?? "").trim()}:${(process.env.EBAY_CLIENT_SECRET ?? "").trim()}`).toString("base64");
   const r = await fetch("https://api.ebay.com/identity/v1/oauth2/token", {
     method: "POST",
     headers: { authorization: `Basic ${basic}`, "content-type": "application/x-www-form-urlencoded" },

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { autorizado } from "@/lib/auth";
-import { buscarEbay, ebayActivo } from "@/lib/ebay";
+import { buscarEbay, ebayActivo, pistasClaves } from "@/lib/ebay";
 import { ingerir } from "@/lib/ingesta";
 
 export const maxDuration = 60;
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     if (!r.ok) return NextResponse.json({ error: r.error }, { status: 500 });
     return NextResponse.json({ ...r, subastas: items.filter((i) => i.subasta).length });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 502 });
+    const msg = (e as Error).message;
+    return NextResponse.json({ error: msg, ...(/token|401/.test(msg) ? { pistas: pistasClaves() } : {}) }, { status: 502 });
   }
 }
