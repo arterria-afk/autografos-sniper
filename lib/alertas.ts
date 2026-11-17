@@ -16,7 +16,7 @@ const eur = (n: number, c = "EUR") => `${n.toLocaleString("es-ES", { maximumFrac
 export async function alertar(l: Row) {
   if (await vendedorBloqueado(l.platform, l.seller)) return;
   const esCarta = l.kind === "carta" && !!l.carta_clave;
-  const ref = esCarta ? await referenciaCarta(l.carta_clave!, l.external_id) : await resolverReferencia(l.personaje_id, l.tipo, l.external_id);
+  const ref = esCarta ? await referenciaCarta(l.carta_clave!, l.external_id, l.seller) : await resolverReferencia(l.personaje_id, l.tipo, l.external_id, l.seller);
   const j = juzgar(Number(l.price), ref);
   const nombre = (esCarta ? jugadores() : personajes()).find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id;
 
@@ -56,7 +56,9 @@ export async function alertar(l: Row) {
       dif >= 0
         ? `📉 <b>${j.descuento}% por DEBAJO del mercado</b> · te ahorras ~${eur(dif)}`
         : `📈 <b>${-(j.descuento ?? 0)}% por ENCIMA del mercado</b>`,
-      `📊 Mercado: ~<b>${eur(ref.precio)}</b> (mediana de ${ref.muestra} ${FUENTE[ref.fuente]} ${que}${ref.nivel > 1 ? ", tipo parecido" : ""}):`,
+      ref.fuente === "en_venta"
+        ? `📊 Mercado: ~<b>${eur(ref.precio)}</b> (lo más barato que piden otros ${ref.muestra} vendedores ${que}; aún no hay ventas registradas):`
+        : `📊 Mercado: ~<b>${eur(ref.precio)}</b> (mediana de ${ref.muestra} ${FUENTE[ref.fuente]} ${que}${ref.nivel > 1 ? ", tipo parecido" : ""}):`,
     );
     for (const c of ref.comps.slice(0, 4))
       lineas.push(c.url ? `   • <a href="${esc(c.url)}">${eur(c.price)}</a> ${esc(c.title.slice(0, 45))}` : `   • ${eur(c.price)} ${esc(c.title.slice(0, 45))}`);

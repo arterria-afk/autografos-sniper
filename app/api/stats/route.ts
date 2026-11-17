@@ -20,6 +20,10 @@ export async function GET(req: Request) {
   const vendidas = (l: L) => l.status === "vendido";
   const ventasCarta = porGrupo((l) => vendidas(l) && l.kind === "carta" && !!l.carta_clave, (l) => l.carta_clave!);
   const ventasAuto = porGrupo((l) => vendidas(l) && l.kind !== "carta" && l.con_certificado, (l) => `${l.personaje_id}|${l.tipo}`);
+  // Cartas bien identificadas (colección concreta + temporada) con ≥3 anuncios activos: ya tienen referencia "en venta".
+  const activasCarta = porGrupo((l) => l.status === "activo" && l.kind === "carta" && !!l.carta_clave, (l) => l.carta_clave!);
+  const comparable = (k: string) => { const [, col, temp] = k.split("|"); return !["?", "topps", "panini"].includes(col) && temp !== "?"; };
+  const claveEnVenta = Object.entries(activasCarta).filter(([k, n]) => n >= 3 && comparable(k));
   const top = (o: Record<string, number>) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
   const { count: deals7 } = await db().from("deals").select("id", { count: "exact", head: true }).gte("created_at", new Date(hace(7)).toISOString());
@@ -35,6 +39,7 @@ export async function GET(req: Request) {
     borrados_total: cuenta((l) => l.status === "borrado"),
     referencias_cartas: { claves_con_ventas: Object.keys(ventasCarta).length, claves_con_2_o_mas: Object.values(ventasCarta).filter((n) => n >= 2).length, top: top(ventasCarta) },
     referencias_autografos: { grupos_con_ventas: Object.keys(ventasAuto).length, grupos_con_2_o_mas: Object.values(ventasAuto).filter((n) => n >= 2).length, top: top(ventasAuto) },
+    referencias_en_venta_cartas: { claves: claveEnVenta.length, anuncios_cubiertos: claveEnVenta.reduce((a, [, n]) => a + n, 0), top: claveEnVenta.sort((a, b) => b[1] - a[1]).slice(0, 10) },
     alertas_7d: { candidatos: deals7, con_referencia: conRef7, chollos: chollos7 },
   });
 }
