@@ -38,7 +38,7 @@ async function tokenApp(): Promise<string> {
 
 // ---------- cambio de moneda a EUR (BCE vía frankfurter.app; si falla, valores aproximados) ----------
 let cambio: { tasas: Record<string, number>; hasta: number } | null = null;
-async function aEUR(moneda: string): Promise<number> {
+export async function aEUR(moneda: string): Promise<number> {
   if (moneda === "EUR") return 1;
   if (!cambio || Date.now() > cambio.hasta) {
     try {
@@ -95,7 +95,7 @@ export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0): Promi
     out.push({
       id, title: s.title, tituloReconocer: destraducir(s.title), price: eur, currency: "EUR",
       url: `https://www.${m.dominio}/itm/${id}`, photo: s.image?.imageUrl ?? null,
-      seller: s.seller?.username ?? null, market: s.itemLocation?.country ?? mercado.replace("EBAY_", ""), subasta,
+      seller: s.seller?.username ?? null, market: s.itemLocation?.country ?? mercado.replace("EBAY_", ""), subasta, fin: s.itemEndDate ?? null,
     });
   }
   return out;

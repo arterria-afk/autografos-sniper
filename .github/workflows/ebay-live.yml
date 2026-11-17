@@ -1,7 +1,7 @@
 name: eBay
 on:
   schedule:
-    - cron: "13 */2 * * *"
+    - cron: "13 */3 * * *"
   workflow_dispatch:
 concurrency:
   group: ebay-live

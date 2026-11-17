@@ -10,12 +10,13 @@ export type Item = {
   photo?: string | null; market?: string; seller?: string | null;
   subasta?: boolean;            // subasta de eBay: el precio actual no es el final → no se compara ni alerta
   tituloReconocer?: string;     // título "destraducido" (eBay ES/DE traduce los títulos)
+  fin?: string | null;          // fecha de fin (eBay)
 };
 
 const CARTAS_MIN = () => Number(process.env.CARTAS_MIN ?? 25); // precio mínimo para cartas (€)
 
 // Columnas que añaden las migraciones 002 y 004: si aún no existen, se guarda sin ellas.
-const OPCIONALES = ["seller", "descripcion", "kind", "carta_clave", "carta_desc", "carta_grado", "carta_numerada", "carta_auto"];
+const OPCIONALES = ["ends_at", "seller", "descripcion", "kind", "carta_clave", "carta_desc", "carta_grado", "carta_numerada", "carta_auto"];
 
 export async function ingerir(items: Item[], platform: string, mode = "live") {
   const rechazos: Record<string, number> = {};
@@ -24,7 +25,7 @@ export async function ingerir(items: Item[], platform: string, mode = "live") {
     const base = {
       external_id: `${platform}:${it.id}`, platform, market: it.market ?? "ES",
       title: it.title.slice(0, 300), price: it.price, currency: it.currency ?? "EUR",
-      url: it.url, photo_url: it.photo ?? null, status: it.subasta ? "subasta" : "activo", seller: it.seller ?? null, descripcion: it.description?.slice(0, 2000) || null,
+      url: it.url, photo_url: it.photo ?? null, status: it.subasta ? "subasta" : "activo", ...(it.fin ? { ends_at: it.fin } : {}), seller: it.seller ?? null, descripcion: it.description?.slice(0, 2000) || null,
     };
 
     const c = reconocerCarta(it.tituloReconocer ?? it.title, jugadores());
@@ -53,13 +54,18 @@ export async function ingerir(items: Item[], platform: string, mode = "live") {
   // Inserta solo los nuevos; los que ya existían se marcan como vistos ahora.
   const guardar = (rows: Record<string, unknown>[]) =>
     db().from("listings").upsert(rows, { onConflict: "external_id", ignoreDuplicates: true }).select("*");
-  let { data: nuevos, error } = filas.length ? await guardar(filas) : { data: [], error: null };
-  if (error && OPCIONALES.some((k) => error!.message.includes(k))) {
-    // Migraciones pendientes: las CARTAS no se guardan (si no, quedarían mezcladas con los autógrafos).
-    const soloAutografos = filas.filter((f) => f.kind !== "carta");
-    ({ data: nuevos, error } = soloAutografos.length
-      ? await guardar(soloAutografos.map((f) => Object.fromEntries(Object.entries(f).filter(([k]) => !OPCIONALES.includes(k)))))
-      : { data: [], error: null });
+  // Si falta alguna columna opcional (migración pendiente), se quita SOLO esa y se reintenta.
+  // Sin las columnas de cartas (004), las cartas no se guardan: quedarían mezcladas con los autógrafos.
+  let filasG = filas;
+  let { data: nuevos, error } = filasG.length ? await guardar(filasG) : { data: [], error: null };
+  for (let i = 0; i < OPCIONALES.length && error; i++) {
+    const falta = OPCIONALES.find((k) => error!.message.includes(k));
+    if (!falta) break;
+    const quitar = ["kind", "carta_clave", "carta_desc", "carta_grado", "carta_numerada", "carta_auto"].includes(falta)
+      ? ["kind", "carta_clave", "carta_desc", "carta_grado", "carta_numerada", "carta_auto"] : [falta];
+    if (quitar.length > 1) filasG = filasG.filter((f) => f.kind !== "carta");
+    filasG = filasG.map((f) => Object.fromEntries(Object.entries(f).filter(([k]) => !quitar.includes(k))));
+    ({ data: nuevos, error } = filasG.length ? await guardar(filasG) : { data: [], error: null });
   }
   if (error) return { ok: false as const, error: error.message };
   const nuevosIds = new Set((nuevos ?? []).map((n) => n.external_id));

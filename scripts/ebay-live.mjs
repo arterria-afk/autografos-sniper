@@ -1,5 +1,5 @@
 // Busca en eBay (API oficial) autógrafos y cartas en varios mercados, vía la web (las claves están en Vercel).
-// Presupuesto: ~5.000 llamadas/día → por defecto cada 2 horas.
+// Presupuesto: ~5.000 llamadas/día compartidas con el detector de ventas → búsqueda cada 3 horas.
 import { bucle, busquedas, dormir, web } from "./comun.mjs";
 
 const MERCADOS = (process.env.EBAY_MERCADOS ?? "EBAY_ES,EBAY_DE,EBAY_GB,EBAY_US").split(",");

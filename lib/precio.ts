@@ -17,7 +17,7 @@ const percentil = (xs: number[], p: number) => {
   return s[Math.min(s.length - 1, Math.floor((p / 100) * s.length))];
 };
 
-export const FUENTE: Record<Referencia["fuente"], string> = { mis_ventas: "mis ventas", vinted_sold: "ventas Vinted", ventas: "ventas reales", ebay: "eBay en venta", en_venta: "otros vendedores" };
+export const FUENTE: Record<Referencia["fuente"], string> = { mis_ventas: "mis ventas", vinted_sold: "ventas reales", ventas: "ventas reales", ebay: "eBay en venta", en_venta: "otros vendedores" };
 
 // Cascada: mis ventas → ventas reales Vinted (mismo tipo → tipo parecido) → anuncios eBay → "no sé".
 export async function resolverReferencia(personajeId: string, tipo: string, excluirId?: string, seller?: string | null): Promise<Referencia | null> {
@@ -50,7 +50,7 @@ export async function resolverReferencia(personajeId: string, tipo: string, excl
     if (v.length >= 2) {
       return {
         precio: Math.round(mediana(v.map((x) => Number(x.price)))), fuente: "vinted_sold", nivel, muestra: v.length,
-        comps: v.slice(0, 4).map((x) => ({ title: x.title, price: Number(x.price), url: x.url, fecha: x.sold_at, fuente: "Vinted vendido" })),
+        comps: v.slice(0, 4).map((x) => ({ title: x.title, price: Number(x.price), url: x.url, fecha: x.sold_at, fuente: "vendido" })),
       };
     }
   }
