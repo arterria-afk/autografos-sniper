@@ -89,7 +89,15 @@ export function reconocerCarta(titulo: string, jugadores: Jugador[]): Carta | Ca
   if (notas > 1 || numeraciones > 1 || mas) return { ok: false, motivo: "varias_cartas" };
 
   const col = COLECCIONES.find(([, , fs]) => algun(t, fs));
-  const esCarta = col || algun(t, ["card", "carta", "cromo", "tarjeta", "rookie", "rc", "psa", "bgs", "sgc"]);
+  const palabraCarta = algun(t, ["card", "cards", "carta", "cartas", "cromo", "tarjeta", "trading card", "rookie card", "rc", "sticker", "figurina", "carte"]);
+  // Memorabilia (camiseta, foto, balón…) NUNCA es carta, salvo que el título diga claramente que es una carta
+  // (p. ej. "Jersey Patch" de Panini Immaculate, o "PSA 9 ... card"). "PSA" suelto o "PSA/DNA" no hacen carta.
+  const memorabilia = algun(t, ["jersey", "camiseta", "shirt", "trikot", "maglia", "maillot", "camisola", "photo", "foto", "photograph",
+    "fotografia", "8x10", "11x14", "16x20", "ball", "balon", "basketball", "football", "pallone", "poster", "helmet", "casco", "shoe",
+    "shoes", "zapatilla", "bota", "botas", "boot", "vinyl", "vinilo", "lp", "framed", "enmarcada", "enmarcado", "display", "cuadro"]);
+  const notaDeTarjeta = / (psa|bgs|sgc|cgc) (10|[1-9]) /.test(t);
+  if (memorabilia && !palabraCarta && !(col && col[1] !== col[0])) return { ok: false, motivo: "no_es_carta", detalle: `memorabilia (${memorabilia})` };
+  const esCarta = col || palabraCarta || notaDeTarjeta || algun(t, ["rookie"]);
   if (!esCarta) return { ok: false, motivo: "no_es_carta" };
 
   // Nota de gradación: "PSA 10", "BGS 9.5", "SGC 9", "CGC 9.5" (las notas pegadas a la empresa).
