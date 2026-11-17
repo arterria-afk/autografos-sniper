@@ -8,20 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Pasada completa de eBay
-        run: node scripts/ebay-live.mjs
-        env:
-          SITE_URL: ${{ vars.SITE_URL }}
-          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-          LOOP_MINUTES: "0"
       - name: Estadísticas
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['por_plataforma_tipo_estado','referencias_en_venta_cartas','referencias_cartas','alertas_7d']}))" | tr '\n%' '  ')
+          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['alertas_7d','nuevos_24h']}))" | tr '\n%' '  ')
           for i in 0 1; do echo "::notice title=stats-$i::${out:$((i*3800)):3800}"; done
