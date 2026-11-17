@@ -6,17 +6,18 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Estadísticas (tras publicar Vercel)
+      - name: Claves y prueba real de eBay
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          sleep 150
-          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | tr '\n%' '  ')
-          for i in 0 1 2; do echo "::notice title=stats-$i::${out:$((i*3800)):3800}"; done
+          h=$(curl -sS "$SITE_URL/api/health" | tr '\n%' '  ')
+          echo "::notice title=health::${h:0:1500}"
+          for q in "Leo Messi topps|EBAY_ES|25" "Lamine Yamal topps|EBAY_GB|25" "Michael Jordan signed|EBAY_US|0"; do
+            IFS='|' read -r texto mercado min <<< "$q"
+            r=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" -H "content-type: application/json" \
+              -d "{\"q\":\"$texto\",\"mercado\":\"$mercado\",\"min\":$min}" "$SITE_URL/api/ebay" | tr '\n%' '  ')
+            echo "::notice title=ebay $mercado $texto::${r:0:1500}"
+          done
