@@ -100,3 +100,26 @@ export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0): Promi
   }
   return out;
 }
+
+// ---------- subastas: las que terminan pronto y la ficha de un artículo (para registrar el precio final) ----------
+export async function subastasQueTerminan(q: string, mercado = "EBAY_ES", limite = 20) {
+  const u = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
+  u.search = new URLSearchParams({ q, limit: String(limite), sort: "endingSoonest", filter: "buyingOptions:{AUCTION}" }).toString();
+  const r = await fetch(u, { headers: { authorization: `Bearer ${await tokenApp()}`, "X-EBAY-C-MARKETPLACE-ID": mercado } });
+  if (!r.ok) throw new Error(`eBay ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  const j = (await r.json()) as { itemSummaries?: (Resumen & { bidCount?: number })[] };
+  return (j.itemSummaries ?? []).map((s) => ({
+    id: s.legacyItemId ?? s.itemId.split("|")[1], titulo: s.title, fin: s.itemEndDate, pujas: s.bidCount ?? null,
+    precio: s.currentBidPrice ?? s.price ?? null,
+  }));
+}
+
+export async function fichaEbay(legacyId: string, mercado = "EBAY_ES") {
+  const u = new URL("https://api.ebay.com/buy/browse/v1/item/get_item_by_legacy_id");
+  u.search = new URLSearchParams({ legacy_item_id: legacyId }).toString();
+  const r = await fetch(u, { headers: { authorization: `Bearer ${await tokenApp()}`, "X-EBAY-C-MARKETPLACE-ID": mercado } });
+  const texto = await r.text();
+  let j: Record<string, unknown> = {};
+  try { j = JSON.parse(texto); } catch {}
+  return { status: r.status, json: j, texto: r.ok ? null : texto.slice(0, 400) };
+}
