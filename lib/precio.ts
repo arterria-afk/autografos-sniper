@@ -113,8 +113,17 @@ export async function enVenta(
 
 export type Juicio = { esChollo: boolean; descuento: number | null; aviso: string | null };
 
+// ¿Basada en ventas reales? (Si no, son precios pedidos por otros vendedores: solo informativo.)
+export const esVentaReal = (ref: Referencia | null) => !!ref && ref.fuente !== "en_venta" && ref.fuente !== "ebay";
+// CHOLLO_SOLO_VENTAS=no en Vercel vuelve a permitir chollos con precios pedidos (más avisos, menos fiables).
+const soloVentas = () => process.env.CHOLLO_SOLO_VENTAS !== "no";
+
 export function juzgar(precio: number, ref: Referencia | null): Juicio {
   if (!ref) return { esChollo: false, descuento: null, aviso: null };
+  if (soloVentas() && !esVentaReal(ref)) {
+    const d = Math.round((1 - precio / ref.precio) * 100);
+    return { esChollo: false, descuento: d, aviso: null }; // informativo: no hay ventas reales con las que comparar
+  }
   const descuento = Math.round((1 - precio / ref.precio) * 100);
   // Con ventas reales basta un 25 %; con precios pedidos por otros vendedores (referencia más débil), un 30 %.
   if (descuento < (ref.fuente === "en_venta" ? 30 : 25)) return { esChollo: false, descuento, aviso: null };
