@@ -1,0 +1,22 @@
+name: Consulta
+on:
+  push:
+    branches: [consulta]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Consulta
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+        run: |
+          for q in "personaje=kobe-bryant&tipo=camiseta&n=60" "personaje=kobe-bryant&tipo=camiseta&estados=vendido&n=20" "personaje=kobe-bryant&texto=jersey&n=60"; do
+            out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?$q" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          r=d.get('resultados') or []
+          print(d.get('n'), ' ||| '.join(f\"{x['price']}€ {x['platform']}/{x['market']} [{x['status']}|{','.join(x['certificados'])}] {x['title']} {x['url']}\" for x in r))" | tr '\n%' '  ')
+            for i in 0 1 2; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=$q-$i::${out:$((i*3800)):3800}"; done
+          done
