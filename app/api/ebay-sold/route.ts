@@ -23,7 +23,9 @@ export async function POST(req: Request) {
   const base = () => db().from("listings").select("id,external_id,status,ends_at").eq("platform", "ebay");
   // 1) subastas terminadas sin revisar · 2) subastas sin fecha de fin (antiguas) · 3) precio fijo, los revisados hace más tiempo
   // Prioridad: subastas terminadas → subastas antiguas sin fecha de fin (ponerse al día) → algunas de precio fijo.
-  const a = await base().eq("status", "subasta").lt("ends_at", hace2min).is("checked_at", null).order("ends_at", { ascending: false }).limit(n);
+  // Solo las terminadas en las últimas 24 h (después eBay puede dejar de mostrar el resultado), las más recientes primero.
+  const hace24h = new Date(ahora.getTime() - 24 * 3600e3).toISOString();
+  const a = await base().eq("status", "subasta").lt("ends_at", hace2min).gte("ends_at", hace24h).is("checked_at", null).order("ends_at", { ascending: false }).limit(n);
   if (a.error) return NextResponse.json({ error: a.error.message }, { status: 500 }); // p. ej. falta la migración 005
   const resto = Math.max(0, n - (a.data?.length ?? 0));
   const fijos = Math.min(Math.ceil(n / 5), resto);

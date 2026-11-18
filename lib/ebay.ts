@@ -74,7 +74,7 @@ type Resumen = {
 };
 
 // Busca los anuncios más nuevos en un mercado. min = precio mínimo en la moneda del mercado.
-// orden "nuevos": anuncios recién puestos. orden "terminan": SUBASTAS que acaban en las próximas horas y ya tienen pujas
+// orden "nuevos": anuncios recién puestos. orden "terminan": SUBASTAS que acaban en las próximas 3 horas
 // (casi seguro acaban en venta → el detector registra el precio final como venta real).
 export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0, orden: "nuevos" | "terminan" = "nuevos"): Promise<Item[]> {
   const m = MERCADOS[mercado] ?? MERCADOS.EBAY_ES;
@@ -88,10 +88,10 @@ export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0, orden:
   const j = (await r.json()) as { itemSummaries?: (Resumen & { bidCount?: number })[] };
 
   const out: Item[] = [];
-  const limiteFin = Date.now() + 6 * 3600e3;
+  const limiteFin = Date.now() + 3 * 3600e3;
   for (const s of j.itemSummaries ?? []) {
-    // "terminan": solo subastas con pujas que acaban en ≤ 6 h (las demás no aportan ventas).
-    if (orden === "terminan" && (!(s.bidCount ?? 0) || !s.itemEndDate || new Date(s.itemEndDate).getTime() > limiteFin)) continue;
+    // "terminan": subastas que acaban en ≤ 3 h. No se exige que ya tengan pujas: en eBay se puja en el último momento.
+    if (orden === "terminan" && (!s.itemEndDate || new Date(s.itemEndDate).getTime() > limiteFin)) continue;
     const subasta = !!s.buyingOptions?.includes("AUCTION") && !s.buyingOptions?.includes("FIXED_PRICE");
     const p = subasta ? (s.currentBidPrice ?? s.price) : s.price;
     if (!p) continue;
