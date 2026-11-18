@@ -74,19 +74,24 @@ type Resumen = {
 };
 
 // Busca los anuncios más nuevos en un mercado. min = precio mínimo en la moneda del mercado.
-export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0): Promise<Item[]> {
+// orden "nuevos": anuncios recién puestos. orden "terminan": SUBASTAS que acaban en las próximas horas y ya tienen pujas
+// (casi seguro acaban en venta → el detector registra el precio final como venta real).
+export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0, orden: "nuevos" | "terminan" = "nuevos"): Promise<Item[]> {
   const m = MERCADOS[mercado] ?? MERCADOS.EBAY_ES;
-  const filtros = ["buyingOptions:{FIXED_PRICE|AUCTION|BEST_OFFER}"];
+  const filtros = [orden === "terminan" ? "buyingOptions:{AUCTION}" : "buyingOptions:{FIXED_PRICE|AUCTION|BEST_OFFER}"];
   if (min > 0) filtros.push(`price:[${min}..]`, `priceCurrency:${m.moneda}`);
   const u = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
-  u.search = new URLSearchParams({ q, limit: "100", sort: "newlyListed", filter: filtros.join(",") }).toString();
+  u.search = new URLSearchParams({ q, limit: "100", sort: orden === "terminan" ? "endingSoonest" : "newlyListed", filter: filtros.join(",") }).toString();
   const r = await fetch(u, { headers: { authorization: `Bearer ${await tokenApp()}`, "X-EBAY-C-MARKETPLACE-ID": mercado } });
   if (r.status === 401) { token = null; throw new Error("eBay 401: token caducado o claves sin permiso"); }
   if (!r.ok) throw new Error(`eBay ${r.status}: ${(await r.text()).slice(0, 200)}`);
-  const j = (await r.json()) as { itemSummaries?: Resumen[] };
+  const j = (await r.json()) as { itemSummaries?: (Resumen & { bidCount?: number })[] };
 
   const out: Item[] = [];
+  const limiteFin = Date.now() + 6 * 3600e3;
   for (const s of j.itemSummaries ?? []) {
+    // "terminan": solo subastas con pujas que acaban en ≤ 6 h (las demás no aportan ventas).
+    if (orden === "terminan" && (!(s.bidCount ?? 0) || !s.itemEndDate || new Date(s.itemEndDate).getTime() > limiteFin)) continue;
     const subasta = !!s.buyingOptions?.includes("AUCTION") && !s.buyingOptions?.includes("FIXED_PRICE");
     const p = subasta ? (s.currentBidPrice ?? s.price) : s.price;
     if (!p) continue;

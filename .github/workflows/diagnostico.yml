@@ -6,16 +6,16 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Pasada real de Vinted con descripciones (tras publicar Vercel)
-        run: sleep 150 && node scripts/vinted-live.mjs
+      - name: Subastas de eBay que terminan (tras publicar Vercel)
+        run: sleep 150 && node scripts/ebay-live.mjs
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
           LOOP_MINUTES: "0"
-          MODE: live
+          ORDEN: terminan

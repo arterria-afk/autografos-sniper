@@ -7,7 +7,7 @@ if (salud.faltan?.includes("EBAY_CLIENT_ID")) { console.log("::notice title=vent
 
 const total = { revisados: 0, ventas: 0, sin_venta: 0, siguen: 0, errores: 0 };
 for (let i = 0; i < Number(process.env.TANDAS ?? 3); i++) {
-  const r = await web("/api/ebay-sold?n=" + (process.env.N ?? 30), {});
+  const r = await web("/api/ebay-sold?n=" + (process.env.N ?? 25), {});
   for (const k of Object.keys(total)) total[k] += r[k] ?? 0;
   if ((r.revisados ?? 0) === 0) break;
 }

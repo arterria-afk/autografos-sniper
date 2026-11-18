@@ -3,6 +3,7 @@
 import { bucle, busquedas, dormir, web } from "./comun.mjs";
 
 const MERCADOS = (process.env.EBAY_MERCADOS ?? "EBAY_ES,EBAY_DE,EBAY_GB,EBAY_US").split(",");
+const ORDEN = process.env.ORDEN ?? "nuevos"; // nuevos | terminan
 // Palabras de autógrafo en el idioma de cada eBay (ahorra cupo: buscar "firmado" en eBay EE. UU. no sirve).
 const PALABRAS = {
   EBAY_ES: ["firmado", "autografo", "signed"],
@@ -26,7 +27,7 @@ await bucle(async () => {
     for (const b of busquedas(PALABRAS[mercado])) {
       let r = null;
       for (let intento = 0; intento < 2 && !r; intento++) {
-        try { r = await web("/api/ebay", { q: b.texto, mercado, min: b.min }); }
+        try { r = await web("/api/ebay", { q: b.texto, mercado, min: b.min, orden: ORDEN }); }
         catch (e) {
           const tipo = (e.message.match(/eBay[^"]{0,80}/)?.[0] ?? e.message).slice(0, 90);
           errores[tipo] = (errores[tipo] ?? 0) + 1;
@@ -40,6 +41,6 @@ await bucle(async () => {
     if (seguidos >= 15) break;
   }
   console.log("Pasada terminada:", total, errores);
-  console.log(`::notice title=pasada ebay::${JSON.stringify({ ...total, busquedas_ok: ok, errores })}`.slice(0, 3900));
+  console.log(`::notice title=pasada ebay ${ORDEN}::${JSON.stringify({ ...total, busquedas_ok: ok, errores })}`.slice(0, 3900));
   if (!ok) throw new Error("ninguna búsqueda de eBay funcionó");
 });

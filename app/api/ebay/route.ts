@@ -10,9 +10,9 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   if (!ebayActivo()) return NextResponse.json({ error: "faltan EBAY_CLIENT_ID / EBAY_CLIENT_SECRET en Vercel" }, { status: 503 });
-  const { q, mercado = "EBAY_ES", min = 0 } = (await req.json()) as { q: string; mercado?: string; min?: number };
+  const { q, mercado = "EBAY_ES", min = 0, orden = "nuevos" } = (await req.json()) as { q: string; mercado?: string; min?: number; orden?: "nuevos" | "terminan" };
   try {
-    const items = await buscarEbay(q, mercado, min);
+    const items = await buscarEbay(q, mercado, min, orden);
     const r = await ingerir(items, "ebay", "live");
     if (!r.ok) return NextResponse.json({ error: r.error }, { status: 500 });
     return NextResponse.json({ ...r, subastas: items.filter((i) => i.subasta).length });
