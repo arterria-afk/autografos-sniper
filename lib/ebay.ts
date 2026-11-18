@@ -21,6 +21,7 @@ export function pistasClaves() {
 }
 
 // ---------- token de aplicación (client credentials), válido ~2 h ----------
+export const tokenEbay = () => tokenApp();
 let token: { valor: string; hasta: number } | null = null;
 async function tokenApp(): Promise<string> {
   if (token && Date.now() < token.hasta) return token.valor;

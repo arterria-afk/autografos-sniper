@@ -5,16 +5,11 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Búsqueda fresca en eBay + consulta (tras publicar Vercel)
+      - uses: actions/checkout@v4
+      - name: Valorar cartas (tras publicar Vercel)
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-        run: |
-          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=max-dowman&kind=carta&auto=1&texto=finest&estados=activo,subasta,vendido&n=60" | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin)
-          r=d.get('resultados') or []
-          print(d.get('n'), ' ||| '.join(f\"{x['price']}€ {x['platform']}/{x['market']} [{x['status']}{(' fin '+x['ends_at'][:16]) if x.get('ends_at') else ''}] {x.get('carta_desc') or ''} :: {x['title']} {x['url']}\" for x in r))" | tr '\n%' '  ')
-          for i in 0 1 2 3; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=finest-$i::${out:$((i*3800)):3800}"; done
+        run: sleep 150 && python3 scripts/valorar-cartas.py
