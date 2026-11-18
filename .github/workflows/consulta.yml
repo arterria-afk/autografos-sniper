@@ -7,11 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Recheck (tras publicar Vercel)
+      - name: Estado
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          sleep 150
-          out=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck" | tr '\n%' '  ')
-          echo "::notice title=recheck::${out:0:3800}"
+          h=$(curl -sS "$SITE_URL/api/health" | python3 -c "import json,sys;print(json.dumps(json.load(sys.stdin)['migraciones']))")
+          echo "::notice title=migraciones::$h"
+          e=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/ebay-sold?n=3" | tr '\n%' '  ')
+          echo "::notice title=ebay-sold::${e:0:1000}"
+          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['vendidos_7d','nuevos_24h','referencias_cartas','referencias_autografos','alertas_7d']}))" | tr '\n%' '  ')
+          echo "::notice title=stats::${out:0:3800}"
