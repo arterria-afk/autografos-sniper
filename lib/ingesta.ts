@@ -71,6 +71,9 @@ export async function ingerir(items: Item[], platform: string, mode = "live") {
   const nuevosIds = new Set((nuevos ?? []).map((n) => n.external_id));
   const vistos = filas.map((f) => f.external_id as string).filter((id) => !nuevosIds.has(id));
   if (vistos.length) await db().from("listings").update({ last_seen_at: new Date().toISOString() }).in("external_id", vistos);
+  // Anuncios ya guardados que ahora traen fecha de fin (subastas de eBay): apuntarla para revisar el resultado al terminar.
+  const conFin = filas.filter((f) => f.ends_at && vistos.includes(f.external_id as string)).slice(0, 100);
+  await Promise.all(conFin.map((f) => db().from("listings").update({ ends_at: f.ends_at }).eq("external_id", f.external_id as string).is("ends_at", null)));
 
   let alertas = 0;
   // Vinted: la búsqueda no trae la descripción → las alertas esperan a que el script la lea (ver /api/descripcion).
