@@ -9,3 +9,10 @@ leo-messi | Leo Messi | futbol | messi, lionel messi, leo messi, lionel mesi, le
 lamine-yamal | Lamine Yamal | futbol | lamine yamal, yamal, lamine, lamin yamal, lamine jamal
 michael-jackson | Michael Jackson | musica | michael jackson, micheal jackson, michael jakson, king of pop
 eminem | Eminem | musica | eminem, eminen, marshall mathers, slim shady
+# Cine
+quentin-tarantino | Quentin Tarantino | cine | quentin tarantino, tarantino, q tarantino
+robert-de-niro | Robert De Niro | cine | robert de niro, de niro, deniro, robert deniro, bob de niro
+al-pacino | Al Pacino | cine | al pacino, pacino, alfredo pacino
+leonardo-dicaprio | Leonardo DiCaprio | cine | leonardo dicaprio, dicaprio, di caprio, leonardo di caprio, leo dicaprio, leo di caprio
+sylvester-stallone | Sylvester Stallone | cine | sylvester stallone, stallone, sly stallone, silvester stallone, sylvester stalone
+arnold-schwarzenegger | Arnold Schwarzenegger | cine | arnold schwarzenegger, schwarzenegger, schwarzeneger, schwarzenager, schwarzennegger, arnold schwarzeneger, arnold schwarzenager, schwarzenegguer

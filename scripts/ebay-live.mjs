@@ -3,6 +3,13 @@
 import { bucle, busquedas, dormir, web } from "./comun.mjs";
 
 const MERCADOS = (process.env.EBAY_MERCADOS ?? "EBAY_ES,EBAY_DE,EBAY_GB,EBAY_US").split(",");
+// Palabras de autógrafo en el idioma de cada eBay (ahorra cupo: buscar "firmado" en eBay EE. UU. no sirve).
+const PALABRAS = {
+  EBAY_ES: ["firmado", "autografo", "signed"],
+  EBAY_DE: ["signiert", "signed"],
+  EBAY_GB: ["signed", "autograph"],
+  EBAY_US: ["signed", "autograph"],
+};
 
 // Sin claves de eBay en Vercel todavía → no hacer nada (y no marcar error).
 const salud = await web("/api/health");
@@ -16,7 +23,7 @@ await bucle(async () => {
   const errores = {};
   let ok = 0, seguidos = 0;
   for (const mercado of MERCADOS) {
-    for (const b of busquedas()) {
+    for (const b of busquedas(PALABRAS[mercado])) {
       let r = null;
       for (let intento = 0; intento < 2 && !r; intento++) {
         try { r = await web("/api/ebay", { q: b.texto, mercado, min: b.min }); }

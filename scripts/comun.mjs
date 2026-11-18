@@ -31,8 +31,8 @@ export function jugadores() {
 }
 
 // Búsquedas de cada pasada: autógrafos (sin precio mínimo) + cartas (desde CARTAS_MIN €).
-export function busquedas() {
-  const palabras = (process.env.PALABRAS ?? "firmado,autografo,signed").split(",");
+export function busquedas(palabrasAutografo) {
+  const palabras = palabrasAutografo ?? (process.env.PALABRAS ?? "firmado,autografo,signed").split(",");
   const cartas = (process.env.PALABRAS_CARTAS ?? "topps,panini,psa").split(",");
   const min = Number(process.env.CARTAS_MIN ?? 25);
   return [
