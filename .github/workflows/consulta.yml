@@ -12,15 +12,9 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          sleep 150
-          for m in EBAY_ES EBAY_DE EBAY_GB EBAY_US; do
-            for q in "Max Dowman auto" "Max Dowman autograph"; do
-              curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" -H "content-type: application/json" -d "{\"q\":\"$q\",\"mercado\":\"$m\",\"min\":0}" "$SITE_URL/api/ebay" > /dev/null
-            done
-          done
-          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=max-dowman&kind=carta&auto=1&max=200&n=60" | python3 -c "
+          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=max-dowman&kind=carta&auto=1&texto=stadium&estados=activo,subasta,vendido&n=60" | python3 -c "
           import json,sys
           d=json.load(sys.stdin)
           r=d.get('resultados') or []
           print(d.get('n'), ' ||| '.join(f\"{x['price']}€ {x['platform']}/{x['market']} [{x['status']}{(' fin '+x['ends_at'][:16]) if x.get('ends_at') else ''}] {x.get('carta_desc') or ''} :: {x['title']} {x['url']}\" for x in r))" | tr '\n%' '  ')
-          for i in 0 1 2 3; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=dowman-$i::${out:$((i*3800)):3800}"; done
+          for i in 0 1 2 3; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=stadium-$i::${out:$((i*3800)):3800}"; done
