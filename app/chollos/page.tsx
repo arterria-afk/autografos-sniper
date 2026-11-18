@@ -23,8 +23,10 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
   const f = await searchParams;
   let q = db().from("deals")
     .select("id,listing_id,price,ref_price,ref_source,ref_sample,descuento,es_chollo,created_at,photo_url,fb,fb_motivo,listings!inner(title,url,platform,personaje_id,tipo,certificados,photo_path,status,descartado)")
-    .order("created_at", { ascending: false }).limit(100);
+    .order(f.solo === "oport" ? "descuento" : "created_at", { ascending: false }).limit(100);
   if (f.solo === "chollos") q = q.eq("es_chollo", true);
+  // Oportunidades: sin ventas confirmadas, pero muy por debajo de lo que piden otros vendedores por lo mismo.
+  if (f.solo === "oport") q = q.eq("ref_source", "en_venta").gte("descuento", 35).eq("listings.status", "activo");
   if (f.voto === "sin") q = q.is("fb", null);
   if (f.voto !== "mal") q = q.eq("listings.descartado", false);
   if (f.p) q = q.eq("listings.platform", f.p);
@@ -71,6 +73,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
       <div className="flex flex-wrap gap-2">
         {chip(url({ solo: undefined }), !f.solo, "Todo")}
         {chip(url({ solo: "chollos" }), f.solo === "chollos", "🔥 Solo chollos")}
+        {chip(url({ solo: "oport" }), f.solo === "oport", "💡 Oportunidades")}
         <span className="w-2" />
         {chip(url({ voto: undefined }), !f.voto, "Todos")}
         {chip(url({ voto: "sin" }), f.voto === "sin", "Sin votar")}
