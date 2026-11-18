@@ -22,12 +22,15 @@ export async function POST(req: Request) {
 
   const base = () => db().from("listings").select("id,external_id,status,ends_at").eq("platform", "ebay");
   // 1) subastas terminadas sin revisar · 2) subastas sin fecha de fin (antiguas) · 3) precio fijo, los revisados hace más tiempo
-  const [a, b, c] = await Promise.all([
-    base().eq("status", "subasta").lt("ends_at", hace2min).is("checked_at", null).order("ends_at", { ascending: false }).limit(n),
-    base().eq("status", "subasta").is("ends_at", null).is("checked_at", null).limit(Math.ceil(n / 4)),
-    base().eq("status", "activo").order("checked_at", { ascending: true, nullsFirst: true }).limit(Math.ceil(n / 5)),
-  ]);
+  // Prioridad: subastas terminadas → subastas antiguas sin fecha de fin (ponerse al día) → algunas de precio fijo.
+  const a = await base().eq("status", "subasta").lt("ends_at", hace2min).is("checked_at", null).order("ends_at", { ascending: false }).limit(n);
   if (a.error) return NextResponse.json({ error: a.error.message }, { status: 500 }); // p. ej. falta la migración 005
+  const resto = Math.max(0, n - (a.data?.length ?? 0));
+  const fijos = Math.min(Math.ceil(n / 5), resto);
+  const [b, c] = await Promise.all([
+    base().eq("status", "subasta").is("ends_at", null).is("checked_at", null).limit(Math.max(0, resto - fijos) || 1),
+    base().eq("status", "activo").order("checked_at", { ascending: true, nullsFirst: true }).limit(fijos || 1),
+  ]);
   const vistos = new Set<number>();
   const cola = [...(a.data ?? []), ...(b.data ?? []), ...(c.data ?? [])].filter((x) => !vistos.has(x.id) && vistos.add(x.id)).slice(0, n) as Fila[];
 
