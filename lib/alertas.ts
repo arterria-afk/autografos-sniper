@@ -1,3 +1,4 @@
+import { enlace } from "./enlaces";
 import { db } from "./supabase";
 import { referenciaCarta, resolverReferencia, juzgar } from "./precio";
 import { enviarAlerta, esc } from "./telegram";
@@ -75,13 +76,13 @@ export async function alertar(l: Row) {
         : `📊 Mercado: ~<b>${eur(ref.precio)}</b> (mediana de ${ref.muestra} ${FUENTE[ref.fuente]} ${que}${ref.nivel > 1 ? ", tipo parecido" : ""}):`,
     );
     for (const c of ref.comps.slice(0, 4))
-      lineas.push(c.url ? `   • <a href="${esc(c.url)}">${eur(c.price)}</a> ${esc(c.title.slice(0, 45))}` : `   • ${eur(c.price)} ${esc(c.title.slice(0, 45))}`);
+      lineas.push(c.url ? `   • <a href="${esc(enlace(c.url))}">${eur(c.price)}</a> ${esc(c.title.slice(0, 45))}` : `   • ${eur(c.price)} ${esc(c.title.slice(0, 45))}`);
   } else {
     lineas.push("📊 Sin datos de mercado todavía: no sé si es buen precio.");
   }
   if (j.aviso) lineas.push(`⚠️ ${esc(j.aviso)}`);
   if (ia) lineas.push(esc(resumenIA(ia)));
 
-  const msgId = await enviarAlerta({ foto: l.photo_url, html: lineas.join("\n"), url: l.url, dealId: deal.id });
+  const msgId = await enviarAlerta({ foto: l.photo_url, html: lineas.join("\n"), url: enlace(l.url), dealId: deal.id });
   if (msgId) await db().from("deals").update({ telegram_msg_id: msgId }).eq("id", deal.id);
 }

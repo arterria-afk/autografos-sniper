@@ -64,7 +64,7 @@ export default async function Snipes({ searchParams }: { searchParams: Promise<{
             <ul className="divide-y divide-[#1f2a22] text-sm">
               {enGixen.map((g) => (
                 <li key={g.itemid} className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-2">
-                  <a href={`https://www.ebay.es/itm/${g.itemid}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate hover:text-[#5cf08a]">{g.titulo || g.itemid}</a>
+                  <a href={`https://www.ebay.com/itm/${g.itemid}`} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate hover:text-[#5cf08a]">{g.titulo || g.itemid}</a>
                   <span className="text-xs text-[#8fa394]">
                     {eur(g.maxbid)} · {g.fin ? fecha(g.fin.toISOString()) : "—"} ·{" "}
                     <span className={g.estado === "programado" ? "text-[#5cf08a]" : g.estado === "saltado" ? "text-[#e8c35a]" : ""}>{g.estado}</span>

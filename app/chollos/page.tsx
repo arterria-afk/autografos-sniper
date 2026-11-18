@@ -1,3 +1,4 @@
+import { enlace } from "@/lib/enlaces";
 import Link from "next/link";
 import { db } from "@/lib/supabase";
 import { jugadores, personajes, nombreDe } from "@/lib/personajes";
@@ -113,7 +114,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
                     <span className="text-xs text-[#5f7364]">{fecha(d.created_at)} · {d.listings?.platform}</span>
                   </div>
                   {d.carta?.kind === "carta" && <p className="text-xs text-[#5cf08a]">🃏 {d.carta.carta_desc}</p>}
-                  <a href={d.listings?.url} target="_blank" rel="noreferrer" className="block truncate hover:text-[#5cf08a]">{d.listings?.title}</a>
+                  <a href={enlace(d.listings?.url)} target="_blank" rel="noreferrer" className="block truncate hover:text-[#5cf08a]">{d.listings?.title}</a>
                   <div className="flex flex-wrap gap-x-4 text-xs">
                     <span className="text-base font-bold">{eur(d.price)}</span>
                     <span className="text-[#8fa394]">ref. {d.ref_price && d.ref_source ? `${eur(d.ref_price)} (${FUENTE[d.ref_source]}, ${d.ref_sample})` : "sin referencia"}</span>

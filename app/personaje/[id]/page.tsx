@@ -1,3 +1,4 @@
+import { enlace } from "@/lib/enlaces";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
 import { personajes } from "@/lib/personajes";
@@ -64,7 +65,7 @@ export default async function Personaje({ params, searchParams }: { params: Prom
               <li key={x.external_id} className="flex items-center gap-3 px-4 py-2">
                 <Foto src={fotoPublica(x.photo_path, x.photo_url)} alt="" />
                 <div className="min-w-0 flex-1">
-                  <a href={x.url} target="_blank" rel="noreferrer" className="block truncate hover:text-[#5cf08a]">{x.title}</a>
+                  <a href={enlace(x.url)} target="_blank" rel="noreferrer" className="block truncate hover:text-[#5cf08a]">{x.title}</a>
                   <p className="text-xs text-[#8fa394]">{x.tipo} · <Cert certs={x.certificados} /> · {fecha(x.sold_at)}</p>
                 </div>
                 <b className="shrink-0">{eur(x.price)}</b>
@@ -79,7 +80,7 @@ export default async function Personaje({ params, searchParams }: { params: Prom
           <ul className="divide-y divide-[#1f2a22] text-sm">
             {abiertos.map((x) => (
               <li key={x.external_id} className="flex items-center justify-between gap-3 px-4 py-2">
-                <a href={x.url} target="_blank" rel="noreferrer" className="min-w-0 truncate hover:text-[#5cf08a]">{x.title}</a>
+                <a href={enlace(x.url)} target="_blank" rel="noreferrer" className="min-w-0 truncate hover:text-[#5cf08a]">{x.title}</a>
                 <span className="shrink-0 text-xs text-[#8fa394]">{x.platform} · <b className="text-sm text-[#d7e3d9]">{eur(x.price)}</b></span>
               </li>
             ))}

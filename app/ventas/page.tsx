@@ -1,3 +1,4 @@
+import { enlace } from "@/lib/enlaces";
 import { db } from "@/lib/supabase";
 import { nombreDe } from "@/lib/personajes";
 import { fotoPublica } from "@/lib/fotos-url";
@@ -21,7 +22,7 @@ export default async function Ventas() {
                 <Foto src={fotoPublica(x.photo_path, x.photo_url)} alt="" />
                 <div className="min-w-0 flex-1">
                   <a href={`/personaje/${x.personaje_id}`} className="font-bold hover:text-[#5cf08a]">{nombre(x.personaje_id)}</a>
-                  <a href={x.url} target="_blank" rel="noreferrer" className="block truncate hover:text-[#5cf08a]">{x.title}</a>
+                  <a href={enlace(x.url)} target="_blank" rel="noreferrer" className="block truncate hover:text-[#5cf08a]">{x.title}</a>
                   <p className="text-xs text-[#8fa394]">{x.tipo} · <Cert certs={x.certificados} coa={x.coa_generico} /> · {fecha(x.sold_at)}</p>
                 </div>
                 <b className="shrink-0">{eur(x.price)}</b>

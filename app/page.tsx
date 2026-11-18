@@ -1,3 +1,4 @@
+import { enlace } from "@/lib/enlaces";
 import Link from "next/link";
 import { db } from "@/lib/supabase";
 import { nombreDe } from "@/lib/personajes";
@@ -83,7 +84,7 @@ export default async function Inicio() {
                 <Foto src={fotoPublica(d.listings.photo_path, d.photo_url)} alt="" />
                 <div className="min-w-0 flex-1">
                   <p className="font-bold">{d.es_chollo ? <span className="text-[#ff8a3d]">🔥 −{d.descuento}% </span> : "🆕 "}{nombre(d.listings.personaje_id)}</p>
-                  <a href={d.listings.url} target="_blank" rel="noreferrer" className="block truncate text-xs hover:text-[#5cf08a]">{d.listings.title}</a>
+                  <a href={enlace(d.listings.url)} target="_blank" rel="noreferrer" className="block truncate text-xs hover:text-[#5cf08a]">{d.listings.title}</a>
                   <p className="text-xs text-[#5f7364]">{fecha(d.created_at)} · {d.listings.platform}</p>
                 </div>
                 <b className="shrink-0">{eur(d.price)}</b>

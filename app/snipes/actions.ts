@@ -22,7 +22,7 @@ export async function crear(form: FormData) {
   if (!id || !puja) return;
   const fin = String(form.get("ends_at") ?? "");
   const { data } = await db().from("snipes").insert({
-    ebay_item_id: id, url: `https://www.ebay.es/itm/${id}`, max_bid: puja,
+    ebay_item_id: id, url: `https://www.ebay.com/itm/${id}`, max_bid: puja,
     title: String(form.get("title") ?? "").trim() || null, notas: String(form.get("notas") ?? "").trim() || null,
     ends_at: fin ? new Date(fin).toISOString() : null,
   }).select("id").single();
@@ -75,7 +75,7 @@ export async function sincronizar() {
       const datos = { ends_at: g.fin?.toISOString() ?? null, en_gixen: g.estado === "programado" };
       if (l) await db().from("snipes").update({ ...datos, ...(l.title ? {} : { title: g.titulo || null }) }).eq("id", l.id);
       else {
-        await db().from("snipes").insert({ ...datos, ebay_item_id: g.itemid, url: `https://www.ebay.es/itm/${g.itemid}`, max_bid: g.maxbid, title: g.titulo || null });
+        await db().from("snipes").insert({ ...datos, ebay_item_id: g.itemid, url: `https://www.ebay.com/itm/${g.itemid}`, max_bid: g.maxbid, title: g.titulo || null });
         nuevos++;
       }
     }

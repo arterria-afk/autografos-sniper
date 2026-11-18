@@ -1,3 +1,4 @@
+import { enlace } from "@/lib/enlaces";
 import { reconocer } from "@/lib/recognize";
 import { personajes } from "@/lib/personajes";
 import { referenciaCarta, resolverReferencia, juzgar, FUENTE } from "@/lib/precio";
@@ -73,7 +74,7 @@ export default async function Valorar({ searchParams }: { searchParams: Promise<
                 <ul className="space-y-1 text-xs">
                   {ref.comps.map((c, i) => (
                     <li key={i} className="flex justify-between gap-3">
-                      <span className="truncate">{c.url ? <a href={c.url} target="_blank" rel="noreferrer" className="hover:text-[#5cf08a]">{c.title}</a> : c.title}</span>
+                      <span className="truncate">{c.url ? <a href={enlace(c.url)} target="_blank" rel="noreferrer" className="hover:text-[#5cf08a]">{c.title}</a> : c.title}</span>
                       <span className="shrink-0 text-[#8fa394]">{eur(c.price)} · {c.fuente}{c.fecha ? ` · ${fecha(c.fecha)}` : ""}</span>
                     </li>
                   ))}
@@ -117,7 +118,7 @@ export default async function Valorar({ searchParams }: { searchParams: Promise<
                 <ul className="space-y-1 text-xs">
                   {ref.comps.map((c, i) => (
                     <li key={i} className="flex justify-between gap-3">
-                      <span className="truncate">{c.url ? <a href={c.url} target="_blank" rel="noreferrer" className="hover:text-[#5cf08a]">{c.title}</a> : c.title}</span>
+                      <span className="truncate">{c.url ? <a href={enlace(c.url)} target="_blank" rel="noreferrer" className="hover:text-[#5cf08a]">{c.title}</a> : c.title}</span>
                       <span className="shrink-0 text-[#8fa394]">{eur(c.price)} · {c.fuente}{c.fecha ? ` · ${fecha(c.fecha)}` : ""}</span>
                     </li>
                   ))}

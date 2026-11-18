@@ -99,7 +99,7 @@ export async function buscarEbay(q: string, mercado = "EBAY_ES", min = 0, orden:
     const id = s.legacyItemId ?? s.itemId.split("|")[1] ?? s.itemId;
     out.push({
       id, title: s.title, tituloReconocer: destraducir(s.title), price: eur, currency: "EUR",
-      url: `https://www.${m.dominio}/itm/${id}`, photo: s.image?.imageUrl ?? null,
+      url: `https://www.ebay.com/itm/${id}`, photo: s.image?.imageUrl ?? null,
       seller: s.seller?.username ?? null, market: s.itemLocation?.country ?? mercado.replace("EBAY_", ""), subasta, fin: s.itemEndDate ?? null,
     });
   }
