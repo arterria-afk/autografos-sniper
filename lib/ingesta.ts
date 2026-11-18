@@ -73,7 +73,11 @@ export async function ingerir(items: Item[], platform: string, mode = "live") {
   if (vistos.length) await db().from("listings").update({ last_seen_at: new Date().toISOString() }).in("external_id", vistos);
 
   let alertas = 0;
-  if (mode === "live") {
+  // Vinted: la búsqueda no trae la descripción → las alertas esperan a que el script la lea (ver /api/descripcion).
+  const pendientes = platform === "vinted" && mode === "live"
+    ? (nuevos ?? []).map((n) => ({ external_id: n.external_id as string, url: n.url as string }))
+    : [];
+  if (mode === "live" && !pendientes.length) {
     // Autógrafos: solo certificados. Cartas: todas (ya filtradas por valor y precio mínimo).
     // Las subastas no se comparan (su precio actual no es el final).
     const candidatos = (nuevos ?? []).filter((n) => n.status !== "subasta" && (n.kind === "carta" || n.con_certificado));
@@ -81,5 +85,5 @@ export async function ingerir(items: Item[], platform: string, mode = "live") {
     alertas = candidatos.length;
   }
   const cartas = filas.filter((f) => f.kind === "carta").length;
-  return { ok: true as const, recibidos: items.length, reconocidos: filas.length, cartas, nuevos: nuevosIds.size, alertas, rechazos };
+  return { ok: true as const, pendientes, recibidos: items.length, reconocidos: filas.length, cartas, nuevos: nuevosIds.size, alertas, rechazos };
 }

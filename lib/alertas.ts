@@ -5,9 +5,11 @@ import { jugadores, nombreDe } from "./personajes";
 import { vendedorBloqueado } from "./votos";
 import { FUENTE } from "./precio";
 import { descartarPorIA, resumenIA, revisar } from "./ia";
+import { fichaEbay } from "./ebay";
+import { guardarReevaluacion, reevaluar } from "./descripciones";
 
 type Row = { id: number; external_id: string; platform: string; seller?: string | null; descripcion?: string | null; title: string; price: number; currency: string; url: string; photo_url: string | null; personaje_id: string; tipo: string; tamano: string | null; certificados: string[];
-  kind?: string; carta_clave?: string | null; carta_desc?: string | null };
+  kind?: string | null; carta_clave?: string | null; carta_desc?: string | null };
 
 const PLAT: Record<string, string> = { vinted: "Vinted", ebay: "eBay", wallapop: "Wallapop", etsy: "Etsy", catawiki: "Catawiki" };
 const eur = (n: number, c = "EUR") => `${n.toLocaleString("es-ES", { maximumFractionDigits: 2 })} ${c === "EUR" ? "€" : c}`;
@@ -17,7 +19,19 @@ export async function alertar(l: Row) {
   if (await vendedorBloqueado(l.platform, l.seller)) return;
   const esCarta = l.kind === "carta" && !!l.carta_clave;
   const ref = esCarta ? await referenciaCarta(l.carta_clave!, l.external_id, l.seller) : await resolverReferencia(l.personaje_id, l.tipo, l.external_id, l.seller);
-  const j = juzgar(Number(l.price), ref);
+  let j = juzgar(Number(l.price), ref);
+
+  // eBay: antes de avisar de un chollo, leer la descripción del anuncio (cuesta una consulta, solo en candidatos).
+  if (j.esChollo && l.platform === "ebay" && !l.descripcion) {
+    const f = await fichaEbay(l.external_id.replace(/^ebay:/, ""), "EBAY_US").catch(() => null);
+    const fj = (f?.json ?? {}) as { shortDescription?: string; description?: string };
+    const desc = [fj.shortDescription, fj.description].filter(Boolean).join("\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/\s+/g, " ").trim();
+    if (desc) {
+      const ev = reevaluar({ kind: l.kind, title: l.title }, desc);
+      await guardarReevaluacion(l.id, ev);
+      if (ev.descartar || (!esCarta && !ev.certificado)) j = { ...j, esChollo: false, aviso: `Descartado al leer la descripción: ${ev.motivo ?? "sin certificado reconocido"}` };
+    }
+  }
   const nombre = esCarta ? (jugadores().find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id) : nombreDe(l.personaje_id);
 
   // Segunda opinión de la IA (si está activada), solo para los posibles chollos: foto + descripción.

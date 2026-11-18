@@ -130,6 +130,24 @@ function numerada(t: string): boolean {
   return / \/ \d{1,4} /.test(sin);
 }
 
+// En la DESCRIPCIÓN: "signed by 50 Cent", "firmado por Robert Duvall"… con un nombre propio que no es el personaje.
+// Solo cuenta si tras "firmado por / signed by" viene un nombre en mayúsculas (o con cifras): "signed by the legend" no cuenta.
+const POR_DESC = /(?:firmad[oa]s?|autografiad[oa]s?|dedicad[oa]s?|signed|autographed|sign[ée]e?|firmat[oa]|autografat[oa]|signiert|assinad[oa])\s+(?:a mano\s+|in person\s+|personally\s+)?(?:por|by|par|da|von)\s+((?:[A-ZÁÉÍÓÚÑÄÖÜ0-9][\w'’.\-]*\s?){1,3})/g;
+const NO_NOMBRE = new Set(["el", "la", "los", "las", "the", "le", "il", "lo", "der", "die", "him", "himself", "her", "herself", "me", "mi", "my", "our", "nuestro",
+  "propio", "mismo", "jugador", "artista", "actor", "cantante", "player", "artist", "legend", "leyenda", "hand", "mano", "beckett", "psa", "jsa", "bas"]);
+export function firmanteEnDescripcion(desc: string, p: Personaje): string | null {
+  if (!desc) return null;
+  for (const m of desc.matchAll(POR_DESC)) {
+    const nombre = m[1].trim();
+    const n = normalizar(nombre);
+    const primera = n.trim().split(" ")[0];
+    if (!primera || NO_NOMBRE.has(primera)) continue;
+    if (p.alias.some((a) => n.includes(" " + normalizar(a).trim() + " ") || normalizar(a).includes(n.trim()))) continue;
+    return nombre;
+  }
+  return null;
+}
+
 // ---------- catálogo ----------
 export function parsePersonajes(txt: string): Personaje[] {
   return txt
@@ -161,7 +179,7 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
     ? { id: orden.map((p) => p.id).join("+"), nombre: orden.map((p) => p.nombre).join(" + "), categoria: "cine", alias: orden.flatMap((p) => p.alias) }
     : encontrados[0];
 
-  const otro = multifirma ? null : firmanteDistinto(t, personaje);
+  const otro = multifirma ? null : (firmanteDistinto(t, personaje) ?? firmanteEnDescripcion(descripcionUtil(descripcion), personaje));
   if (otro) return { ok: false, motivo: "firma_otro", detalle: otro };
 
   // 2) Exclusiones.
