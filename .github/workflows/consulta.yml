@@ -14,7 +14,7 @@ jobs:
         run: |
           h=$(curl -sS "$SITE_URL/api/health" | python3 -c "import json,sys;print(json.dumps(json.load(sys.stdin)['migraciones']))")
           echo "::notice title=migraciones::$h"
-          e=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/ebay-sold?n=40" | tr '\n%' '  ')
+          e=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/ebay-sold?n=1" | tr '\n%' '  ')
           echo "::notice title=ebay-sold::${e:0:1000}"
-          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['vendidos_7d','nuevos_24h','referencias_cartas','referencias_autografos','alertas_7d']}))" | tr '\n%' '  ')
-          echo "::notice title=stats::${out:0:3800}"
+          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['total','por_plataforma_tipo_estado','vendidos_7d','referencias_cartas','referencias_autografos','referencias_en_venta_cartas','alertas_7d']}))" | tr '\n%' '  ')
+          for i in 0 1; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=stats-$i::${out:$((i*3800)):3800}"; done
