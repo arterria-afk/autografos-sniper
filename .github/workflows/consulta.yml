@@ -7,10 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Estadísticas
+      - name: Búsqueda fresca en eBay + consulta (tras publicar Vercel)
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['vendidos_7d','referencias_cartas','referencias_autografos','alertas_7d']}))" | tr '\n%' '  ')
-          for i in 0 1; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=stats-$i::${out:$((i*3800)):3800}"; done
+          sleep 150
+          for m in EBAY_ES EBAY_DE EBAY_GB EBAY_US; do
+            for q in "Max Dowman auto" "Max Dowman autograph"; do
+              curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" -H "content-type: application/json" -d "{\"q\":\"$q\",\"mercado\":\"$m\",\"min\":0}" "$SITE_URL/api/ebay" > /dev/null
+            done
+          done
+          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=max-dowman&kind=carta&auto=1&max=200&n=60" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)
+          r=d.get('resultados') or []
+          print(d.get('n'), ' ||| '.join(f\"{x['price']}€ {x['platform']}/{x['market']} [{x['status']}{(' fin '+x['ends_at'][:16]) if x.get('ends_at') else ''}] {x.get('carta_desc') or ''} :: {x['title']} {x['url']}\" for x in r))" | tr '\n%' '  ')
+          for i in 0 1 2 3; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=dowman-$i::${out:$((i*3800)):3800}"; done
