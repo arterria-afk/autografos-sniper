@@ -14,3 +14,10 @@ export function jugadores(): Jugador[] {
   if (!cacheJ) cacheJ = parseJugadores(readFileSync(path.join(process.cwd(), "data/jugadores.txt"), "utf8"));
   return cacheJ;
 }
+
+// Nombre legible de un personaje, jugador o multifirma ("al-pacino+robert-de-niro" → "Al Pacino + Robert De Niro").
+export function nombreDe(id: string | null | undefined): string {
+  if (!id) return "—";
+  const todos = [...personajes(), ...jugadores()];
+  return id.split("+").map((x) => todos.find((p) => p.id === x)?.nombre ?? x).join(" + ");
+}

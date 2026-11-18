@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { autorizado } from "@/lib/auth";
 import { db } from "@/lib/supabase";
 import { tg } from "@/lib/telegram";
-import { jugadores, personajes } from "@/lib/personajes";
+import { nombreDe } from "@/lib/personajes";
 
 // Resumen diario por Telegram: novedades certificadas de las últimas 24 h (que no se avisaron una a una).
 export async function POST(req: Request) {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const { count: revisados } = await db().from("listings").select("id", { count: "exact", head: true }).gte("last_seen_at", desde);
 
   const porPersonaje = Object.entries(nov.reduce<Record<string, number>>((a, d) => { a[d.listings.personaje_id] = (a[d.listings.personaje_id] ?? 0) + 1; return a; }, {}))
-    .sort((a, b) => b[1] - a[1]).map(([id, n]) => `${[...personajes(), ...jugadores()].find((p) => p.id === id)?.nombre ?? id} (${n})`);
+    .sort((a, b) => b[1] - a[1]).map(([id, n]) => `${nombreDe(id)} (${n})`);
   const web = new URL(req.url).origin;
   const texto = [
     "📋 <b>Resumen del día</b>",

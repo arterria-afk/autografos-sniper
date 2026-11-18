@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
-import { jugadores, personajes } from "@/lib/personajes";
+import { jugadores, personajes, nombreDe } from "@/lib/personajes";
 import { fotoPublica } from "@/lib/fotos-url";
 import { FUENTE } from "@/lib/precio";
 import { Caja, Cert, eur, fecha, Foto, SinDatos } from "@/lib/ui";
@@ -56,7 +56,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
   type Fila = { fb: string | null; ia_descartado?: boolean; listings: { descartado: boolean } | null };
   if (f.voto === "mal") data = (data ?? []).filter((d) => { const x = d as unknown as Fila; return x.fb === "mal" || x.ia_descartado || x.listings?.descartado; });
   const deals = (data ?? []) as unknown as Deal[];
-  const nombre = (id?: string) => [...personajes(), ...jugadores()].find((p) => p.id === id)?.nombre ?? id;
+  const nombre = (id?: string) => nombreDe(id);
   const url = (cambio: Record<string, string | undefined>) => {
     const u = new URLSearchParams(Object.entries({ ...f, ...cambio }).filter(([, v]) => v) as [string, string][]);
     return `/chollos${u.size ? "?" + u : ""}`;

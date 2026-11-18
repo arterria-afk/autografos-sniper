@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
-import { personajes } from "@/lib/personajes";
+import { nombreDe } from "@/lib/personajes";
 import { fotoPublica } from "@/lib/fotos-url";
 import { Caja, eur, fecha, Foto, SinDatos } from "@/lib/ui";
 
@@ -35,7 +35,7 @@ export default async function Inicio() {
   const mes = new Date().toISOString().slice(0, 7);
   const benef = (p: (typeof piezas)[number]) => Number(p.precio_venta ?? 0) - Number(p.gastos_venta) - Number(p.precio_compra) - Number(p.gastos_compra);
   const stock = piezas.filter((p) => p.estado === "en_stock");
-  const nombre = (id?: string) => personajes().find((p) => p.id === id)?.nombre ?? id;
+  const nombre = (id?: string) => nombreDe(id);
 
   const Tile = ({ k, v, sub, href }: { k: string; v: string; sub?: string; href?: string }) => {
     const c = (

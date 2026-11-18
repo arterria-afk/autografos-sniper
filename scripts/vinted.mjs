@@ -85,3 +85,20 @@ export async function estado(url) {
   if (reservado) return { estado: "reservado" };
   return { estado: "activo" };
 }
+
+// Descripción de un anuncio desde su página (la búsqueda no la trae).
+export async function descripcion(url) {
+  const r = await get(url, "text/html");
+  if (!r.ok) return null;
+  const html = await r.text();
+  // 1) JSON de la página (escapado dentro de los datos de Next): "description":"…"
+  const m = html.match(/\\?"description\\?"\s*:\s*\\?"((?:[^"\\]|\\\\.|\\.){5,6000}?)\\?"/);
+  if (m) {
+    let s = m[1];
+    try { s = JSON.parse(`"${s.replace(/\\\\/g, "\\")}"`); } catch { s = s.replace(/\\\\n|\\n/g, "\n").replace(/\\\\"/g, '"'); }
+    if (s.trim().length > 3) return s.slice(0, 3000);
+  }
+  // 2) Etiqueta og:description (puede venir recortada)
+  const og = html.match(/<meta[^>]+(?:property|name)="(?:og:)?description"[^>]+content="([^"]*)"/i)?.[1];
+  return og ? og.replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&#39;|&#x27;/g, "'").slice(0, 3000) : null;
+}

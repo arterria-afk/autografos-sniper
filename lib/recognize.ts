@@ -150,12 +150,18 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
   // 1) Personaje: exactamente uno.
   const encontrados = personajes.filter((p) => algun(t, p.alias));
   if (encontrados.length === 0) return { ok: false, motivo: "sin_personaje" };
-  if (encontrados.length > 1)
+  const tipoTitulo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
+  // Multifirma: varios personajes de CINE en un póster o foto (p. ej. "Heat" firmado por De Niro y Al Pacino).
+  // Se trata como una pieza propia ("al-pacino+robert-de-niro") y solo se compara con piezas de los mismos firmantes.
+  const multifirma = encontrados.length > 1 && encontrados.every((p) => p.categoria === "cine") && ["poster", "foto"].includes(tipoTitulo);
+  if (encontrados.length > 1 && !multifirma)
     return { ok: false, motivo: "ambiguo", detalle: encontrados.map((p) => p.nombre).join(" / ") };
-  const personaje = encontrados[0];
+  const orden = [...encontrados].sort((a, b) => a.id.localeCompare(b.id));
+  const personaje: Personaje = multifirma
+    ? { id: orden.map((p) => p.id).join("+"), nombre: orden.map((p) => p.nombre).join(" + "), categoria: "cine", alias: orden.flatMap((p) => p.alias) }
+    : encontrados[0];
 
-  // 1b) "autógrafo de / signed by / firmado por" + otra persona → firma otro (p. ej. el director de Thriller).
-  const otro = firmanteDistinto(t, personaje);
+  const otro = multifirma ? null : firmanteDistinto(t, personaje);
   if (otro) return { ok: false, motivo: "firma_otro", detalle: otro };
 
   // 2) Exclusiones.

@@ -64,5 +64,8 @@ Póster firmado Al Pacino Scarface con certificado JSA	al-pacino|poster|JSA
 Leonardo Di Caprio autografo foto Titanic	leonardo-dicaprio|foto|-
 Sylvester Stallone signed Rocky boxing glove Beckett	sylvester-stallone|otro|Beckett
 Arnold Schwarzenager firmada foto Terminator PSA	arnold-schwarzenegger|foto|PSA/DNA
-Heat poster signed Robert De Niro and Al Pacino Beckett	RECHAZO:ambiguo
+Heat poster signed Robert De Niro and Al Pacino Beckett	al-pacino+robert-de-niro|poster|Beckett
 Rocky Balboa poster reprint Stallone signature	RECHAZO:excluido
+Foto firmada por Stallone y Schwarzenegger Expendables PSA	arnold-schwarzenegger+sylvester-stallone|foto|PSA/DNA
+Camiseta firmada De Niro y Al Pacino	RECHAZO:ambiguo
+Poster Heat firmado De Niro Pacino Messi	RECHAZO:ambiguo

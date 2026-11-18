@@ -1,7 +1,7 @@
 import { db } from "./supabase";
 import { referenciaCarta, resolverReferencia, juzgar } from "./precio";
 import { enviarAlerta, esc } from "./telegram";
-import { jugadores, personajes } from "./personajes";
+import { jugadores, nombreDe } from "./personajes";
 import { vendedorBloqueado } from "./votos";
 import { FUENTE } from "./precio";
 import { descartarPorIA, resumenIA, revisar } from "./ia";
@@ -18,7 +18,7 @@ export async function alertar(l: Row) {
   const esCarta = l.kind === "carta" && !!l.carta_clave;
   const ref = esCarta ? await referenciaCarta(l.carta_clave!, l.external_id, l.seller) : await resolverReferencia(l.personaje_id, l.tipo, l.external_id, l.seller);
   const j = juzgar(Number(l.price), ref);
-  const nombre = (esCarta ? jugadores() : personajes()).find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id;
+  const nombre = esCarta ? (jugadores().find((p) => p.id === l.personaje_id)?.nombre ?? l.personaje_id) : nombreDe(l.personaje_id);
 
   // Segunda opinión de la IA (si está activada), solo para los posibles chollos: foto + descripción.
   const ia = !j.esChollo || esCarta ? null : await revisar({

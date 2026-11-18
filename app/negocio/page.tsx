@@ -1,5 +1,5 @@
 import { db } from "@/lib/supabase";
-import { personajes } from "@/lib/personajes";
+import { personajes, nombreDe } from "@/lib/personajes";
 import { fotoPublica } from "@/lib/fotos-url";
 import { boton, Caja, eur, Foto, input, SinDatos } from "@/lib/ui";
 import { borrarPieza, comprar, deshacerVenta, vender } from "./actions";
@@ -28,7 +28,7 @@ export default async function Negocio({ searchParams }: { searchParams: Promise<
   const vendidas = piezas.filter((p) => p.estado === "vendida");
   const mes = hoy().slice(0, 7);
   const delMes = vendidas.filter((p) => p.fecha_venta?.startsWith(mes));
-  const nombre = (id: string | null) => personajes().find((p) => p.id === id)?.nombre ?? (id || "—");
+  const nombre = (id: string | null) => nombreDe(id);
 
   const porPersonaje = Object.entries(vendidas.reduce<Record<string, { n: number; b: number }>>((a, p) => {
     const k = nombre(p.personaje_id); a[k] ??= { n: 0, b: 0 }; a[k].n++; a[k].b += beneficio(p); return a;

@@ -1,5 +1,5 @@
 import { db } from "@/lib/supabase";
-import { personajes } from "@/lib/personajes";
+import { nombreDe } from "@/lib/personajes";
 import { fotoPublica } from "@/lib/fotos-url";
 import { Caja, Cert, eur, fecha, Foto, SinDatos } from "@/lib/ui";
 
@@ -9,7 +9,7 @@ export default async function Ventas() {
   const { data } = await db().from("listings")
     .select("external_id,title,price,url,photo_url,photo_path,tipo,certificados,coa_generico,sold_at,personaje_id")
     .eq("status", "vendido").order("sold_at", { ascending: false }).limit(100);
-  const nombre = (id: string) => personajes().find((p) => p.id === id)?.nombre ?? id;
+  const nombre = (id: string) => nombreDe(id);
   return (
     <div className="space-y-4">
       <h1 className="text-xl text-[#5cf08a]">Historial de ventas reales</h1>
