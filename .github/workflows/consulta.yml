@@ -7,11 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Enviar resumen ahora (tras publicar Vercel)
+      - name: Estadísticas
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          sleep 150
-          out=$(curl -sS -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/resumen" | tr '\n%' '  ')
-          echo "::notice title=resumen::${out:0:1500}"
+          out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" | python3 -c "import json,sys;d=json.load(sys.stdin);print(json.dumps({k:d[k] for k in ['vendidos_7d','referencias_cartas','referencias_autografos','alertas_7d']}))" | tr '\n%' '  ')
+          for i in 0 1; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=stats-$i::${out:$((i*3800)):3800}"; done
