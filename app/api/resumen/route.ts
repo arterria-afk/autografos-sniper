@@ -7,7 +7,10 @@ import { nombreDe } from "@/lib/personajes";
 // Resumen diario por Telegram: novedades certificadas de las últimas 24 h (que no se avisaron una a una).
 export async function POST(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
-  const desde = new Date(Date.now() - 24 * 3600e3).toISOString();
+  // ?horas=N: periodo que cubre (10:00 → desde las 17:00 de ayer = 17 h; 17:00 → desde las 10:00 = 7 h).
+  const horas = Math.min(Math.max(Number(new URL(req.url).searchParams.get("horas") ?? 24), 1), 48);
+  const desde = new Date(Date.now() - horas * 3600e3).toISOString();
+  const titulo = new URL(req.url).searchParams.get("titulo") ?? "Resumen del día";
   const { data } = await db().from("deals")
     .select("es_chollo,price,listings!inner(personaje_id,platform,descartado)")
     .gte("created_at", desde).eq("listings.descartado", false).limit(1000);
@@ -26,7 +29,7 @@ export async function POST(req: Request) {
     .order("descuento", { ascending: false }).limit(5);
   const oportunidades = (ops ?? []) as unknown as { price: number; ref_price: number; descuento: number; listings: { title: string; url: string; platform: string } }[];
   const texto = [
-    "📋 <b>Resumen del día</b>",
+    `📋 <b>${titulo}</b> (últimas ${horas} h)`,
     `🔎 ${revisados ?? 0} anuncios revisados`,
     `🔥 ${chollos} chollos (ya avisados)`,
     `🆕 ${nov.length} novedades (autógrafos certificados y cartas)${porPersonaje.length ? ": " + porPersonaje.join(", ") : ""}`,

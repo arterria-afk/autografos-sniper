@@ -1,16 +1,33 @@
 name: Resumen diario
+# Dos resúmenes al día por Telegram, a las 10:00 y a las 17:00 hora de España (Europe/Madrid).
+# GitHub programa en UTC y con retraso: se lanza un rato antes (en invierno y en verano) y el script espera a la hora exacta.
 on:
   schedule:
-    - cron: "41 19 * * *" # ~20:41 / 21:41 en España (UTC+1 / UTC+2)
+    - cron: "40 7,8,14,15 * * *"
   workflow_dispatch:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 60
     steps:
       - name: Enviar resumen por Telegram
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          curl -sS --fail-with-body -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/resumen"
+          # Hora de Madrid dentro de 30 min: si es 10 o 17, toca resumen; si no, esta ejecución no hace nada.
+          objetivo=$(TZ=Europe/Madrid date -d "+30 min" +%H)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then objetivo=manual; fi
+          case "$objetivo" in
+            10) horas=17; titulo="Resumen de la mañana";;
+            17) horas=7;  titulo="Resumen de la tarde";;
+            manual) horas=24; titulo="Resumen";;
+            *) echo "No toca (hora Madrid objetivo: $objetivo)"; exit 0;;
+          esac
+          # Esperar a la hora en punto (si aún no ha llegado)
+          if [ "$objetivo" != manual ]; then
+            ahora=$(date +%s); destino=$(TZ=Europe/Madrid date -d "today $objetivo:00" +%s)
+            [ $destino -gt $ahora ] && sleep $((destino - ahora))
+          fi
+          t=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$titulo")
+          curl -sS --fail-with-body -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/resumen?horas=$horas&titulo=$t"
