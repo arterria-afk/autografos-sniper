@@ -152,7 +152,7 @@ export function firmanteEnDescripcion(desc: string, p: Personaje): string | null
 // "Jaafar Jackson Signed … Michael Jackson", "Asher Roth signed … EMINEM": el título EMPIEZA por otro nombre propio
 // seguido de la palabra de firma → firma esa persona. Se mira el título original (mayúsculas = nombre propio).
 const PALABRA_FIRMA = /\b(signed|autographed|autograph|autogramm|signiert|signiertes|handsigniert|firmad[oa]s?|autografiad[oa]s?|autografat[oa]|sign[ée]e?|assinad[oa])\b/i;
-const NO_ES_NOMBRE = new Set(["foto", "photo", "photos", "fotografia", "camiseta", "jersey", "shirt", "poster", "vinyl", "vinilo", "album", "lp", "cd", "dvd",
+const NO_ES_NOMBRE = new Set(["pallone","cappellino","cappello","bandiera","banderin","colgante","cesped","autographe","autografo","autografi","gorra","cap","casco","helmet","guante","glove","libro","book","programa","program","entrada","ticket","dvd","cd","plata","silver","foto", "photo", "photos", "fotografia", "camiseta", "jersey", "shirt", "poster", "vinyl", "vinilo", "album", "lp", "cd", "dvd",
   "original", "authentic", "autentico", "genuine", "rare", "vintage", "new", "nuevo", "hand", "auto", "autograph", "autografo", "autogramm", "the", "el",
   "la", "los", "das", "der", "die", "framed", "enmarcada", "enmarcado", "official", "oficial", "real", "8x10", "11x14", "16x20", "single", "disco", "libro",
   "book", "programa", "funko", "ticket", "entrada", "card", "carta", "tarjeta", "rarisimo", "raro", "super", "mega", "dual", "triple", "team", "set", "pic",
@@ -162,6 +162,9 @@ const NO_ES_NOMBRE = new Set(["foto", "photo", "photos", "fotografia", "camiseta
 export function firmantePrefijo(titulo: string, p: Personaje): string | null {
   const m = titulo.match(PALABRA_FIRMA);
   if (!m || m.index === undefined || m.index === 0) return null;
+  // "Banderín … firmado por Leo Messi", "Pallone autografato Michael Jordan": el nombre va DETRÁS → firma el personaje.
+  const detras = normalizar(titulo.slice(m.index + m[0].length));
+  if (p.alias.some((a) => new RegExp(`^ (?:(?:by|por|da|von|par|de|from|di) )?${normalizar(a).trim()} `).test(detras))) return null;
   const prefijo = titulo.slice(0, m.index).replace(/[-–—:|*•]+\s*$/, "").trim();
   const tokens = prefijo.split(/\s+/).filter((x) => x && !/^[-–—:|*•&+]+$/.test(x));
   if (!tokens.length || tokens.length > 4) return null;
