@@ -1,7 +1,7 @@
 # Una línea por personaje:  id | Nombre | categoría | alias separados por comas | (opcional) NO CONFUNDIR: otros que firman "a su nombre"
 # Los alias incluyen errores de escritura habituales (ahí salen los chollos).
 # No pongas alias ambiguos (p. ej. "ronaldo" solo, "jordan" solo, "mj").
-kobe-bryant | Kobe Bryant | baloncesto | kobe bryant, kobe, kobe briant, kobe bryan, kobe brayant, black mamba
+kobe-bryant | Kobe Bryant | baloncesto | kobe bryant, kobe, kobe briant, kobe bryan, kobe brayant, black mamba | vanessa bryant, shaquille, shaq, iverson, pau gasol, lamar odom, milo, rosen, madsteez, yungai, sufenvera, print, tribute
 michael-jordan | Michael Jordan | baloncesto | michael jordan, micheal jordan, michael jordon, micheal jordon, m jordan, michel jordan
 lebron-james | LeBron James | baloncesto | lebron james, lebron, le bron james, lebron jame, lebrom james
 cristiano-ronaldo | Cristiano Ronaldo | futbol | cristiano ronaldo, cristiano, cr7, c ronaldo, cristiano ronaldinho, christiano ronaldo

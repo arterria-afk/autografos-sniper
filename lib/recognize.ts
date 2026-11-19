@@ -54,7 +54,8 @@ const EXCLUIR_SIEMPRE = [
   "printed signature", "printed autograph", "printed auto", "firma impresa", "firma impreso", "autografo impreso",
   "autopen", "stamped signature", "stamp signature", "firma estampada", "laser signature", "secretarial",
   "unsigned", "not signed", "sin firmar", "sin firma", "no firmado", "no firmada", "non signe", "non firmato",
-  "nicht signiert", "ohne autogramm", "repro", "repros", "aufdruck", "gedruckte unterschrift", "print signature", "no eminem", "not signed by",
+  "nicht signiert", "ohne autogramm", "repro", "repros", "hwc trading", "hwc", "vordruck", "impresion autografa", "printed autograph",
+  "statue", "estatua", "busto", "bust", "bronze", "bronce", "skulptur", "escultura", "sculpture", "gemalde", "pop art", "art print", "lamina", "aufdruck", "gedruckte unterschrift", "print signature", "no eminem", "not signed by",
   // firmas impresas / estampadas / bordadas
   "serigrafiado", "serigrafiada", "serigrafia", "serigrafato", "serigrafata", "stampato", "stampata", "autografo stampato",
   "impreso", "impresa", "printed", "ricamata", "ricamato", "bordado", "bordada", "embroidered", "hot signature",
@@ -97,7 +98,7 @@ const COA_GENERICO = ["coa", "loa", "certificado", "certificate", "certificat", 
 const COA_NEGADO = ["no coa", "without coa", "sin coa", "sin certificado", "no certificate", "ohne zertifikat", "senza certificato"];
 
 const TIPOS: { tipo: Tipo; frases: string[] }[] = [
-  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cartas", "tarjeta", "tarjetas", "cromo", "trading card", "rookie", "rc", "topps", "leaf", "futera", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina", "carte"] },
+  { tipo: "tarjeta", frases: ["card", "cards", "carta", "cartas", "tarjeta", "tarjetas", "cromo", "trading card", "rookie", "rc", "topps", "leaf", "futera", "score board", "scoreboard", "skybox", "fleer", "hoops", "bowman", "totally certified", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina", "carte"] },
   { tipo: "camiseta", frases: ["jersey", "camiseta", "shirt", "maillot", "maglia", "trikot", "camisola", "kit"] },
   { tipo: "balon", frases: ["ball", "balon", "basketball", "football ball", "soccer ball", "pallone", "fussball", "ballon", "bola"] },
   { tipo: "vinilo", frases: ["vinyl", "vinilo", "lp", "record", "album", "disco", "vinile", "schallplatte", "cd"] },
@@ -107,7 +108,7 @@ const TIPOS: { tipo: Tipo; frases: string[] }[] = [
 ];
 
 // Detrás de "firmado por / autografo di / signed by…" tiene que venir el personaje.
-const POR = ["firmado por", "firmada por", "firmados por", "firmadas por", "autografo de", "autografo di", "autografato da", "autografata da",
+const POR = ["firmado por", "firmada por", "firmados por", "firmadas por", "autografiado por", "autografiada por", "autografo de", "autografo di", "autografato da", "autografata da",
   "firmato da", "firmata da", "signed by", "autographed by", "signe par", "signee par", "signiert von", "autogramm von", "assinado por", "assinada por"];
 const COMODIN = new Set(["el", "la", "los", "las", "il", "lo", "the", "le", "der", "die", "o", "a", "original", "originale", "autentico", "autentica", "real", "authentic"]);
 function firmanteDistinto(t: string, p: Personaje): string | null {
@@ -150,12 +151,12 @@ export function firmanteEnDescripcion(desc: string, p: Personaje): string | null
 
 // "Jaafar Jackson Signed … Michael Jackson", "Asher Roth signed … EMINEM": el título EMPIEZA por otro nombre propio
 // seguido de la palabra de firma → firma esa persona. Se mira el título original (mayúsculas = nombre propio).
-const PALABRA_FIRMA = /\b(signed|autographed|signiert|signiertes|handsigniert|firmad[oa]s?|autografiad[oa]s?|autografat[oa]|sign[ée]e?|assinad[oa])\b/i;
+const PALABRA_FIRMA = /\b(signed|autographed|autograph|autogramm|signiert|signiertes|handsigniert|firmad[oa]s?|autografiad[oa]s?|autografat[oa]|sign[ée]e?|assinad[oa])\b/i;
 const NO_ES_NOMBRE = new Set(["foto", "photo", "photos", "fotografia", "camiseta", "jersey", "shirt", "poster", "vinyl", "vinilo", "album", "lp", "cd", "dvd",
   "original", "authentic", "autentico", "genuine", "rare", "vintage", "new", "nuevo", "hand", "auto", "autograph", "autografo", "autogramm", "the", "el",
   "la", "los", "das", "der", "die", "framed", "enmarcada", "enmarcado", "official", "oficial", "real", "8x10", "11x14", "16x20", "single", "disco", "libro",
   "book", "programa", "funko", "ticket", "entrada", "card", "carta", "tarjeta", "rarisimo", "raro", "super", "mega", "dual", "triple", "team", "set", "pic",
-  "picture", "bild", "image", "music", "musica", "rap", "rapper", "king", "of", "pop", "hip", "hop", "itp", "in", "person", "psa", "jsa", "bas", "beckett", "coa",
+  "picture", "bild", "image", "imagen", "cuadro", "firma", "autograph", "music", "musica", "rap", "rapper", "king", "of", "pop", "hip", "hop", "itp", "in", "person", "psa", "jsa", "bas", "beckett", "coa",
   "cromo", "cromos", "panini", "topps", "leaf", "futera", "upper", "deck", "prizm", "chrome", "finest", "select", "donruss", "fleer", "hoops", "nba", "nfl",
   "fifa", "uefa", "mundial", "world", "cup", "rookie", "rc", "camisa", "maglia", "trikot", "ball", "balon", "basketball", "football", "lakers", "bulls"]);
 export function firmantePrefijo(titulo: string, p: Personaje): string | null {
@@ -169,6 +170,33 @@ export function firmantePrefijo(titulo: string, p: Personaje): string | null {
   // Todas las palabras tienen que parecer nombre propio (Mayúscula o cifra) y no ser palabras comunes.
   const nombre = tokens.every((x) => /^[A-ZÁÉÍÓÚÑÄÖÜ0-9]/.test(x) && !NO_ES_NOMBRE.has(normalizar(x).trim()));
   return nombre ? prefijo : null;
+}
+
+// "Allen Iverson … vs Kobe Bryant", "Shaq with Kobe", "foto … w Kobe Bryant": el personaje SALE en la pieza, firma otro.
+export function personajeComoTema(t: string, p: Personaje): boolean {
+  return p.alias.some((a) => new RegExp(` (vs|versus|with|w|con|x|feat|featuring|junto a|mit) ${normalizar(a).trim()} `).test(t));
+}
+
+// Varios firmantes que NO son solo el personaje ("Stallone & Talia Shire", "Allen Iverson y Kobe Bryant", "dual signed").
+const NOMBRE2 = "[A-ZÁÉÍÓÚÑ][\\w'’.\\-]+\\s+[A-ZÁÉÍÓÚÑ][\\w'’.\\-]+";
+export function variosFirmantes(titulo: string, p: Personaje): string | null {
+  const t = normalizar(titulo);
+  if (/ (dual|triple|team) (signed|autographed|signiert) | firmad[ao] doble | doble firma | dual-signed /.test(t + " ") || /dual-signed|dual signed/i.test(titulo)) return "varias firmas";
+  const alias = p.alias.map((a) => a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  // Conectores como palabra suelta ("&", "+", "and", "y", "und", "e", "et"), nunca pegados a otra palabra.
+  const conectores = "(?:\\s*[&+]|\\s+(?:and|y|und|e|et))";
+  const tras = new RegExp(`\\b(?:${alias})${conectores}\\s+(${NOMBRE2})`, "i").exec(titulo);
+  const antes = new RegExp(`(${NOMBRE2})${conectores}\\s+(?:${alias})\\b`, "i").exec(titulo);
+  for (const m of [tras, antes]) {
+    if (!m) continue;
+    const otro = m[1];
+    const palabras = otro.split(/\s+/);
+    if (!/^[A-ZÁÉÍÓÚÑ]/.test(palabras[0]) || !/^[A-ZÁÉÍÓÚÑ]/.test(palabras[1])) continue;
+    if (palabras.some((w) => NO_ES_NOMBRE.has(normalizar(w).trim()))) continue;
+    if (p.alias.some((a) => normalizar(otro).includes(" " + normalizar(a).trim() + " "))) continue;
+    return otro;
+  }
+  return null;
 }
 
 // ---------- catálogo ----------
@@ -207,8 +235,13 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
 
   const confusion = (personaje.noConfundir ?? []).find((c) => tiene(t, c));
   if (confusion) return { ok: false, motivo: "firma_otro", detalle: confusion };
+  if (!multifirma && personajeComoTema(t, personaje)) return { ok: false, motivo: "firma_otro", detalle: "el personaje sale en la foto, firma otro" };
   const otro = multifirma ? null
     : (firmanteDistinto(t, personaje) ?? firmantePrefijo(titulo, personaje) ?? firmanteEnDescripcion(descripcionUtil(descripcion), personaje));
+  if (!otro && !multifirma) {
+    const varios = variosFirmantes(titulo, personaje);
+    if (varios) return { ok: false, motivo: "varios_firmantes", detalle: varios };
+  }
   if (otro) return { ok: false, motivo: "firma_otro", detalle: otro };
 
   // 2) Exclusiones.

@@ -12,7 +12,7 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          for p in sylvester-stallone arnold-schwarzenegger robert-de-niro al-pacino leonardo-dicaprio quentin-tarantino; do
+          for p in quentin-tarantino; do
             out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=400" | python3 -c "
           import json,sys
           d=json.load(sys.stdin); r=d.get('resultados') or []
