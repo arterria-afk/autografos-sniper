@@ -1,23 +1,27 @@
 // Cliente mínimo de Vinted. OJO: Vinted prohíbe el acceso automatizado en sus condiciones.
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// País: VINTED_BASE = https://www.vinted.es | .fr | .it (cada dominio tiene sus cookies).
 const BASE = process.env.VINTED_BASE ?? "https://www.vinted.es";
+export const PAIS = (BASE.match(/vinted\.(\w+)/)?.[1] ?? "es").toUpperCase();
+const IDIOMA = { ES: "es-ES,es;q=0.9", FR: "fr-FR,fr;q=0.9", IT: "it-IT,it;q=0.9", DE: "de-DE,de;q=0.9" }[PAIS] ?? "es-ES,es;q=0.9";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
-let cookies = "";
+let cookiesPor = {};
 
 export class Bloqueado extends Error {}
 
-async function sesion() {
-  const r = await fetch(BASE + "/", { headers: { "user-agent": UA, "accept-language": "es-ES,es;q=0.9" } });
+async function sesion(origen) {
+  const r = await fetch(origen + "/", { headers: { "user-agent": UA, "accept-language": IDIOMA } });
   if (r.status === 403 || r.status === 429) throw new Bloqueado(`Vinted ${r.status} en portada`);
-  cookies = (r.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
+  cookiesPor[origen] = (r.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
 }
 
 async function get(url, accept = "application/json") {
-  if (!cookies) await sesion();
+  const origen = new URL(url).origin;
+  if (!cookiesPor[origen]) await sesion(origen);
   for (let intento = 0; intento < 2; intento++) {
-    const r = await fetch(url, { headers: { "user-agent": UA, accept, "accept-language": "es-ES,es;q=0.9", cookie: cookies } });
-    if (r.status === 401 && intento === 0) { await sesion(); continue; }
+    const r = await fetch(url, { headers: { "user-agent": UA, accept, "accept-language": IDIOMA, cookie: cookiesPor[origen] } });
+    if (r.status === 401 && intento === 0) { await sesion(origen); continue; }
     if (r.status === 403 || r.status === 429) throw new Bloqueado(`Vinted ${r.status}`);
     return r;
   }
@@ -27,7 +31,7 @@ async function get(url, accept = "application/json") {
 export async function conFreno(fn) {
   try { return await fn(); }
   catch (e) {
-    if (e instanceof Bloqueado) { console.warn(`${e.message} → pausa de 30 min`); cookies = ""; await dormir(30 * 60e3); return null; }
+    if (e instanceof Bloqueado) { console.warn(`${e.message} → pausa de 30 min`); cookiesPor = {}; await dormir(30 * 60e3); return null; }
     throw e;
   }
 }
@@ -60,7 +64,7 @@ export function parsearCatalogo(html) {
     const likes = fav ? Number(fav.match(/(\d+)\s*usuari/)?.[1] ?? 0) : null;
     out.push({
       id, title: limpiarTitulo(ent(title)), price, currency: "EUR",
-      url: BASE + ent(href).replace(/\?.*$/, ""), photo: img ? ent(img) : null, market: "ES", ...(likes != null ? { interes: { likes } } : {}),
+      url: BASE + ent(href).replace(/\?.*$/, ""), photo: img ? ent(img) : null, market: PAIS, ...(likes != null ? { interes: { likes } } : {}),
     });
   }
   return out;

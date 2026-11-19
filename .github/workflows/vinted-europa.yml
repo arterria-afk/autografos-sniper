@@ -1,0 +1,58 @@
+name: Vinted Francia e Italia
+# Igual que "Vinted en directo" y "Vinted ventas", pero en vinted.fr y vinted.it (cada 30 min).
+on:
+  schedule:
+    - cron: "22 * * * *"
+  workflow_dispatch:
+    inputs:
+      una_pasada:
+        description: "Solo una pasada (para probar)"
+        type: boolean
+        default: true
+jobs:
+  anuncios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        pais: [fr, it]
+    concurrency:
+      group: vinted-live-${{ matrix.pais }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/vinted-live.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          VINTED_BASE: https://www.vinted.${{ matrix.pais }}
+          LOOP_MINUTES: ${{ (github.event_name == 'workflow_dispatch' && inputs.una_pasada) && '0' || '110' }}
+          EVERY_MINUTES: "30"
+          MODE: live
+  ventas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        pais: [fr, it]
+    concurrency:
+      group: vinted-sold-${{ matrix.pais }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/vinted-sold.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          VINTED_BASE: https://www.vinted.${{ matrix.pais }}
+          LOOP_MINUTES: ${{ (github.event_name == 'workflow_dispatch' && inputs.una_pasada) && '0' || '110' }}
+          EVERY_MINUTES: "20"
+          N: '50'

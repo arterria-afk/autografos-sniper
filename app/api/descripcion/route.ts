@@ -11,7 +11,7 @@ export const maxDuration = 60;
 // POST { items: [{ external_id, descripcion }] }
 export async function POST(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
-  const { items = [] } = (await req.json()) as { items: { external_id: string; descripcion: string | null; interes?: Interes }[] };
+  const { items = [] } = (await req.json()) as { items: { external_id: string; descripcion: string | null; interes?: Interes; sinAlerta?: boolean }[] };
   const res = { recibidos: items.length, descartados: 0, certificados: 0, candidatos: 0, motivos: {} as Record<string, number> };
   const candidatos: Record<string, unknown>[] = [];
   for (const it of items) {
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     if (ev.descartar) { res.descartados++; const m = (ev.motivo ?? "").split(" ")[0]; res.motivos[m] = (res.motivos[m] ?? 0) + 1; continue; }
     if (ev.certificado) res.certificados++;
     const fila = { ...l, ...ev.cambios, interes: it.interes };
-    if (fila.status !== "subasta" && (fila.kind === "carta" || fila.con_certificado)) candidatos.push(fila);
+    if (!it.sinAlerta && fila.status !== "subasta" && (fila.kind === "carta" || fila.con_certificado)) candidatos.push(fila);
   }
   res.candidatos = candidatos.length;
   await Promise.all(candidatos.map((c) => alertar(c as Parameters<typeof alertar>[0])));

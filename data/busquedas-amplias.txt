@@ -30,3 +30,11 @@ EBAY_US | john lennon signed
 EBAY_US | charlie chaplin signed
 EBAY_US | bruce lee signed
 EBAY_US | james dean signed
+vinted-fr | poster dédicacé
+vinted-fr | autographe certificat
+vinted-fr | dédicace psa
+vinted-fr | autographe beckett
+vinted-it | poster autografato
+vinted-it | autografo certificato
+vinted-it | autografo psa
+vinted-it | autografo beckett

@@ -13,7 +13,8 @@ export async function GET(req: Request) {
   const platform = sp.get("platform") ?? "vinted";
   const hace3h = new Date(Date.now() - 3 * 3600e3).toISOString();
   const hace2h = new Date(Date.now() - 2 * 3600e3).toISOString();
-  const base = () => db().from("listings").select("external_id,url").eq("platform", platform).in("status", ["activo", "reservado"]);
+  const market = sp.get("market"); // Vinted: ES | FR | IT (cada país lo revisa su propio proceso)
+  const base = () => { const q = db().from("listings").select("external_id,url").eq("platform", platform).in("status", ["activo", "reservado"]); return market ? q.eq("market", market) : q; };
 
   // 1) Certificados y cartas nunca revisados · 2) desaparecidos hace poco de las búsquedas · 3) los revisados hace más tiempo.
   const [a, a2, b, c] = await Promise.all([

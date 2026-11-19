@@ -231,7 +231,8 @@ export function parsePersonajes(txt: string): Personaje[] {
 // "Pulp Fiction cast signed poster", "firmado por el reparto", "3 firmas", "Travolta & Thurman signed".
 export function firmaReparto(titulo: string): boolean {
   const t = normalizar(titulo);
-  if (/ (cast|reparto|elenco|besetzung) (signed|autographed|firmad[oa]|signiert|autografiad[oa])| (signed|autographed|firmad[oa]|signiert) (by|por|von) (the |el |la |dem )?(cast|reparto|elenco|besetzung)| multi ?(signed|firmad[oa]|signiert)| multisigned| multifirma| multi firma| (dual|triple|team) (signed|autographed|signiert)| (\d+|two|three|four|five|six|seven|eight|dos|tres|cuatro|cinco|seis|zwei|drei|vier) (signatures|firmas|autographs|autografos|unterschriften|autogramme) /.test(t)) return true;
+ if (/ (par|da|dal|dallo|by|por|von) (le |il |el |the |la |lo |dem )?(cast|casting|reparto|elenco|besetzung|cast completo) /.test(t)) return true;
+  if (/ (cast|casting|reparto|elenco|besetzung) (signed|autographed|firmad[oa]|signiert|autografiad[oa])| (signed|autographed|firmad[oa]|signiert) (by|por|von) (the |el |la |dem )?(cast|reparto|elenco|besetzung)| multi ?(signed|firmad[oa]|signiert)| multisigned| multifirma| multi firma| (dual|triple|team) (signed|autographed|signiert)| (\d+|two|three|four|five|six|seven|eight|dos|tres|cuatro|cinco|seis|zwei|drei|vier) (signatures|firmas|autographs|autografos|unterschriften|autogramme) /.test(t)) return true;
   // Dos nombres propios unidos por &, +, "and", "y"… ("John Travolta & Uma Thurman")
   const re = new RegExp(`(${NOMBRE2})(?:\\s*[&+,]|\\s+(?:and|y|und|e|et))\\s+(${NOMBRE2})`, "g");
   for (const m of titulo.matchAll(re)) {

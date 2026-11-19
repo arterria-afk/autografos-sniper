@@ -12,5 +12,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Favoritos en Vinted y Wallapop
-        run: node scripts/diagnostico.mjs
+      - name: Pasada de prueba en Vinted Francia (tras publicar Vercel)
+        run: sleep 150 && node scripts/vinted-live.mjs
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
+          VINTED_BASE: https://www.vinted.fr
+          LOOP_MINUTES: "0"
+          MODE: live

@@ -6,7 +6,7 @@ pasos concretos y numerados, nunca pedirle que pegue claves en el chat). Basado 
 
 ## Qué hace
 1. Busca anuncios automáticamente (GitHub Actions → rutas `/api/*` de la web en Vercel → Supabase):
-   - Vinted (lee la página de resultados HTML; su API interna ya no existe) cada 15 min. Lee la DESCRIPCIÓN de cada anuncio nuevo antes de alertar (`/api/descripcion`).
+   - Vinted (lee la página de resultados HTML; su API interna ya no existe) cada 15 min en vinted.es; vinted.fr y vinted.it cada 30 min (`vinted-europa.yml`, `VINTED_BASE`, palabras en su idioma, `market`=país). Los anuncios se envían a la web en grupos de ~300 (cupo de Vercel). Lee la DESCRIPCIÓN de cada anuncio nuevo antes de alertar (`/api/descripcion`).
    - Wallapop (API interna `api.wallapop.com/api/v3/search`, SIN `order_by=newest`, que rompe el filtro) cada 15 min.
    - eBay (Browse API oficial, claves en Vercel): anuncios nuevos cada 8 h y SUBASTAS que terminan en ≤3 h cada 3 h, en EBAY_ES/DE/GB/US con palabras en el idioma de cada mercado.
    - Todocoleccion: bloqueado por Cloudflare (no saltarlo). Catawiki: su API no da precios finales (aparcado).
