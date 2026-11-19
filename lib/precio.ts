@@ -2,7 +2,8 @@ import { db } from "./supabase";
 
 // Tipos que se parecen lo bastante para usarse como referencia de nivel 2.
 const PARECIDOS: Record<string, string[]> = {
-  foto: ["poster"], poster: ["foto"], camiseta: [], balon: [], tarjeta: [], vinilo: [], zapatilla: [], otro: [],
+  // Foto y póster NO se mezclan (el póster vale más; decisión del usuario).
+  foto: [], poster: [], camiseta: [], balon: [], tarjeta: [], vinilo: [], zapatilla: [], otro: [],
 };
 
 export type Comp = { title: string; price: number; url: string | null; fecha: string | null; fuente: string };

@@ -2,20 +2,25 @@ name: Consulta
 on:
   push:
     branches: [consulta]
+  workflow_dispatch:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Títulos guardados de Michael Jackson y Eminem
+      - name: Re-evaluar todo lo guardado (tras publicar Vercel)
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          for p in quentin-tarantino; do
-            out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=400" | python3 -c "
-          import json,sys
-          d=json.load(sys.stdin); r=d.get('resultados') or []
-          print(len(r), ' ||| '.join(x['title'][:90] for x in r))" | tr '\n%' '  ')
-            for i in 0 1 2 3 4 5 6 7 8; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=$p-$i::${out:$((i*3800)):3800}"; done
+          sleep 150
+          out=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck")
+          echo "::notice title=recheck::$(echo "$out" | head -c 1500)"
+          for p in quentin-tarantino michael-jackson eminem kobe-bryant sylvester-stallone; do
+            n=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=1000" | python3 -c "
+          import json,sys,collections
+          j=json.load(sys.stdin); it=j.get('items',j if isinstance(j,list) else [])
+          c=collections.Counter(x.get('tipo') for x in it)
+          print(len(it), dict(c))")
+            echo "::notice title=$p::$n"
           done

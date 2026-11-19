@@ -54,7 +54,7 @@ const EXCLUIR_SIEMPRE = [
   "printed signature", "printed autograph", "printed auto", "firma impresa", "firma impreso", "autografo impreso",
   "autopen", "stamped signature", "stamp signature", "firma estampada", "laser signature", "secretarial",
   "unsigned", "not signed", "sin firmar", "sin firma", "no firmado", "no firmada", "non signe", "non firmato",
-  "nicht signiert", "ohne autogramm", "repro", "repros", "hwc trading", "hwc", "vordruck", "impresion autografa", "printed autograph",
+  "nicht signiert", "ohne autogramm", "repro", "repros", "reprint", "reprints", "autograph reprints", "hwc trading", "hwc", "vordruck", "impresion autografa", "printed autograph",
   "statue", "estatua", "busto", "bust", "bronze", "bronce", "skulptur", "escultura", "sculpture", "gemalde", "pop art", "art print", "lamina", "aufdruck", "gedruckte unterschrift", "print signature", "no eminem", "not signed by",
   // firmas impresas / estampadas / bordadas
   "serigrafiado", "serigrafiada", "serigrafia", "serigrafato", "serigrafata", "stampato", "stampata", "autografo stampato",
@@ -174,7 +174,8 @@ export function firmantePrefijo(titulo: string, p: Personaje): string | null {
 
 // "Allen Iverson … vs Kobe Bryant", "Shaq with Kobe", "foto … w Kobe Bryant": el personaje SALE en la pieza, firma otro.
 export function personajeComoTema(t: string, p: Personaje): boolean {
-  return p.alias.some((a) => new RegExp(` (vs|versus|with|w|con|x|feat|featuring|junto a|mit) ${normalizar(a).trim()} `).test(t));
+  // "with Kobe", "vs Jordan", o posesivo "Quentin Tarantino's Kill Bill" (la película es suya, firma un actor)
+  return p.alias.some((a) => new RegExp(` (vs|versus|with|w|con|x|feat|featuring|junto a|mit) ${normalizar(a).trim()} | ${normalizar(a).trim()} s `).test(t));
 }
 
 // Varios firmantes que NO son solo el personaje ("Stallone & Talia Shire", "Allen Iverson y Kobe Bryant", "dual signed").
