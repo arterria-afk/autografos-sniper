@@ -29,6 +29,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
   // Oportunidades: sin ventas confirmadas, pero muy por debajo de lo que piden otros vendedores por lo mismo.
   if (f.solo === "oport") q = q.eq("ref_source", "en_venta").gte("descuento", 35).eq("listings.status", "activo");
   if (f.voto === "sin") q = q.is("fb", null);
+  if (f.voto === "duda") q = q.eq("fb", "duda");
   if (f.voto !== "mal") q = q.eq("listings.descartado", false);
   if (f.p) q = q.eq("listings.platform", f.p);
   if (f.per) q = q.eq("listings.personaje_id", f.per);
@@ -81,6 +82,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
         <span className="w-2" />
         {chip(url({ voto: undefined }), !f.voto, "Todos")}
         {chip(url({ voto: "sin" }), f.voto === "sin", "Sin votar")}
+        {chip(url({ voto: "duda" }), f.voto === "duda", "🤔 Con dudas")}
         {chip(url({ voto: "mal" }), f.voto === "mal", "❌ Descartados")}
       </div>
       <div className="flex flex-wrap gap-2">

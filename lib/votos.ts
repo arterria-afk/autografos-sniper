@@ -1,13 +1,23 @@
 import { db } from "./supabase";
 
 export type Voto = "bueno" | "duda" | "mal";
-export type Motivo = "no_firma" | "no_personaje" | "precio" | "otro";
+export type Motivo = "no_firma" | "no_personaje" | "precio" | "otro" | MotivoDuda;
+export type MotivoDuda = "duda_real" | "duda_precio" | "depende_precio" | "duda_otro";
+
+// 🤔 Dudas: no descarta nada, solo anota la duda (se ven en la web → Chollos → 🤔).
+export const MOTIVOS_DUDA: Record<MotivoDuda, string> = {
+  duda_real: "¿Será auténtico?",
+  duda_precio: "¿Precio de mercado bien?",
+  depende_precio: "Me interesa según precio",
+  duda_otro: "Otra duda",
+};
 
 export const MOTIVOS: Record<Motivo, string> = {
   no_firma: "No es firma real",
   no_personaje: "No es ese personaje",
   precio: "Precio mal calculado",
   otro: "Otro",
+  ...MOTIVOS_DUDA,
 };
 
 // Cuántos ❌ (firma falsa / personaje equivocado) hacen falta para bloquear a un vendedor.
@@ -18,7 +28,7 @@ const BLOQUEO_TRAS = 2;
 //  y si el vendedor acumula varios, se bloquea (no se vuelven a mostrar sus anuncios).
 export async function registrarVoto(dealId: number, fb: Voto, motivo: Motivo | null = null) {
   const { data: deal } = await db().from("deals")
-    .update({ fb, fb_motivo: fb === "mal" ? motivo : null, fb_at: new Date().toISOString() })
+    .update({ fb, fb_motivo: fb === "bueno" ? null : motivo, fb_at: new Date().toISOString() })
     .eq("id", dealId).select("listing_id").single();
   if (!deal?.listing_id) return;
 

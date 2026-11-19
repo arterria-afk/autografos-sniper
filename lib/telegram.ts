@@ -16,7 +16,12 @@ export async function tg(method: string, body: Record<string, unknown>) {
 export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // Botones de voto: ✅ bueno · 🤔 dudas · ❌ te has equivocado (→ motivo).
-export function botonesVoto(dealId: number, paso: "voto" | "motivo"): Boton[][] {
+export function botonesVoto(dealId: number, paso: "voto" | "motivo" | "duda"): Boton[][] {
+  if (paso === "duda")
+    return [
+      [{ text: "¿Será auténtico?", callback_data: `d:${dealId}:duda_real` }, { text: "¿Precio de mercado bien?", callback_data: `d:${dealId}:duda_precio` }],
+      [{ text: "Me interesa según precio", callback_data: `d:${dealId}:depende_precio` }, { text: "Otra duda", callback_data: `d:${dealId}:duda_otro` }],
+    ];
   if (paso === "voto")
     return [[
       { text: "✅ Bueno", callback_data: `v:${dealId}:bueno` },
