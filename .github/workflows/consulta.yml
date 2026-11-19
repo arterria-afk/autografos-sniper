@@ -12,7 +12,7 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          for p in michael-jackson eminem; do
+          for p in kobe-bryant; do
             out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=400" | python3 -c "
           import json,sys
           d=json.load(sys.stdin); r=d.get('resultados') or []

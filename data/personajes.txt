@@ -1,4 +1,4 @@
-# Una línea por personaje:  id | Nombre | categoría | alias separados por comas
+# Una línea por personaje:  id | Nombre | categoría | alias separados por comas | (opcional) NO CONFUNDIR: otros que firman "a su nombre"
 # Los alias incluyen errores de escritura habituales (ahí salen los chollos).
 # No pongas alias ambiguos (p. ej. "ronaldo" solo, "jordan" solo, "mj").
 kobe-bryant | Kobe Bryant | baloncesto | kobe bryant, kobe, kobe briant, kobe bryan, kobe brayant, black mamba
@@ -7,8 +7,8 @@ lebron-james | LeBron James | baloncesto | lebron james, lebron, le bron james, 
 cristiano-ronaldo | Cristiano Ronaldo | futbol | cristiano ronaldo, cristiano, cr7, c ronaldo, cristiano ronaldinho, christiano ronaldo
 leo-messi | Leo Messi | futbol | messi, lionel messi, leo messi, lionel mesi, leo mesi
 lamine-yamal | Lamine Yamal | futbol | lamine yamal, yamal, lamine, lamin yamal, lamine jamal
-michael-jackson | Michael Jackson | musica | michael jackson, micheal jackson, michael jakson, king of pop
-eminem | Eminem | musica | eminem, eminen, marshall mathers, slim shady
+michael-jackson | Michael Jackson | musica | michael jackson, micheal jackson, michael jakson, king of pop | jaafar, jafaar, jafar jackson, la toya, latoya, janet jackson, tito jackson, jermaine, jackie jackson, marlon jackson, randy jackson, paris jackson, prince jackson, bigi jackson, emmanuel lewis, quincy jones, john landis, miss cast away, imitator, impersonator, imitador, tribute, homenaje, look alike, lookalike, sosias
+eminem | Eminem | musica | eminem, eminen, marshall mathers, slim shady | asher roth, jessie reyez, kuniva, swifty, bizarre, xzibit, obie trice, royce da, d12, brittany murphy, britney murphy, hailie, jeff kravitz, look alike, lookalike, tribute
 # Cine
 quentin-tarantino | Quentin Tarantino | cine | quentin tarantino, tarantino, q tarantino
 robert-de-niro | Robert De Niro | cine | robert de niro, de niro, deniro, robert deniro, bob de niro

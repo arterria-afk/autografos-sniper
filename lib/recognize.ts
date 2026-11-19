@@ -1,7 +1,7 @@
 // Reconocedor de autógrafos: título de anuncio → personaje + tipo + certificado.
 // Regla de oro: precisión antes que cantidad. Si hay duda, se rechaza.
 
-export type Personaje = { id: string; nombre: string; categoria: string; alias: string[] };
+export type Personaje = { id: string; nombre: string; categoria: string; alias: string[]; noConfundir?: string[] };
 
 export type Certificado = "PSA/DNA" | "Beckett" | "JSA" | "Upper Deck" | "Panini" | "Topps" | "Leaf" | "Futera" | "Fanatics";
 export type Tipo = "foto" | "camiseta" | "balon" | "poster" | "vinilo" | "tarjeta" | "zapatilla" | "otro";
@@ -54,7 +54,7 @@ const EXCLUIR_SIEMPRE = [
   "printed signature", "printed autograph", "printed auto", "firma impresa", "firma impreso", "autografo impreso",
   "autopen", "stamped signature", "stamp signature", "firma estampada", "laser signature", "secretarial",
   "unsigned", "not signed", "sin firmar", "sin firma", "no firmado", "no firmada", "non signe", "non firmato",
-  "nicht signiert", "ohne autogramm",
+  "nicht signiert", "ohne autogramm", "repro", "repros", "aufdruck", "gedruckte unterschrift", "print signature", "no eminem", "not signed by",
   // firmas impresas / estampadas / bordadas
   "serigrafiado", "serigrafiada", "serigrafia", "serigrafato", "serigrafata", "stampato", "stampata", "autografo stampato",
   "impreso", "impresa", "printed", "ricamata", "ricamato", "bordado", "bordada", "embroidered", "hot signature",
@@ -73,7 +73,7 @@ const REPLICA = ["replica", "replika", "replique", "fake", "falso", "falsa", "im
 const CERTS: { cert: Certificado; frases: string[] }[] = [
   { cert: "PSA/DNA", frases: ["psa / dna", "psa dna", "psadna", "psa authentic", "psa authenticated", "psa auth", "psa coa", "psa loa",
     "psa certified", "psa certificado", "psa certificada", "certificado psa", "certificada psa", "certificado por psa", "psa autograph", "psa auto", "psa encapsulated"] },
-  { cert: "Beckett", frases: ["bas coa", "bas cert", "bas certified", "bas authenticated", "bas witness", "bas witnessed", "bas sticker", "bas loa",
+  { cert: "Beckett", frases: ["bas slab", "bas losa", "bas encapsulated", "beckett slab", "beckett encapsulated", "bas coa", "bas cert", "bas certified", "bas authenticated", "bas witness", "bas witnessed", "bas sticker", "bas loa",
     "beckett authentication", "beckett authenticated", "beckett coa", "beckett loa", "beckett witness", "beckett witnessed", "beckett certificado",
     "certificado beckett", "certificada beckett", "certificacion beckett", "beckett certified", "beckett authentic"] },
   { cert: "JSA", frases: ["jsa", "james spence"] },
@@ -148,6 +148,29 @@ export function firmanteEnDescripcion(desc: string, p: Personaje): string | null
   return null;
 }
 
+// "Jaafar Jackson Signed … Michael Jackson", "Asher Roth signed … EMINEM": el título EMPIEZA por otro nombre propio
+// seguido de la palabra de firma → firma esa persona. Se mira el título original (mayúsculas = nombre propio).
+const PALABRA_FIRMA = /\b(signed|autographed|signiert|signiertes|handsigniert|firmad[oa]s?|autografiad[oa]s?|autografat[oa]|sign[ée]e?|assinad[oa])\b/i;
+const NO_ES_NOMBRE = new Set(["foto", "photo", "photos", "fotografia", "camiseta", "jersey", "shirt", "poster", "vinyl", "vinilo", "album", "lp", "cd", "dvd",
+  "original", "authentic", "autentico", "genuine", "rare", "vintage", "new", "nuevo", "hand", "auto", "autograph", "autografo", "autogramm", "the", "el",
+  "la", "los", "das", "der", "die", "framed", "enmarcada", "enmarcado", "official", "oficial", "real", "8x10", "11x14", "16x20", "single", "disco", "libro",
+  "book", "programa", "funko", "ticket", "entrada", "card", "carta", "tarjeta", "rarisimo", "raro", "super", "mega", "dual", "triple", "team", "set", "pic",
+  "picture", "bild", "image", "music", "musica", "rap", "rapper", "king", "of", "pop", "hip", "hop", "itp", "in", "person", "psa", "jsa", "bas", "beckett", "coa",
+  "cromo", "cromos", "panini", "topps", "leaf", "futera", "upper", "deck", "prizm", "chrome", "finest", "select", "donruss", "fleer", "hoops", "nba", "nfl",
+  "fifa", "uefa", "mundial", "world", "cup", "rookie", "rc", "camisa", "maglia", "trikot", "ball", "balon", "basketball", "football", "lakers", "bulls"]);
+export function firmantePrefijo(titulo: string, p: Personaje): string | null {
+  const m = titulo.match(PALABRA_FIRMA);
+  if (!m || m.index === undefined || m.index === 0) return null;
+  const prefijo = titulo.slice(0, m.index).replace(/[-–—:|*•]+\s*$/, "").trim();
+  const tokens = prefijo.split(/\s+/).filter((x) => x && !/^[-–—:|*•&+]+$/.test(x));
+  if (!tokens.length || tokens.length > 4) return null;
+  const pn = normalizar(prefijo);
+  if (p.alias.some((a) => pn.includes(" " + normalizar(a).trim() + " "))) return null; // el propio personaje firma
+  // Todas las palabras tienen que parecer nombre propio (Mayúscula o cifra) y no ser palabras comunes.
+  const nombre = tokens.every((x) => /^[A-ZÁÉÍÓÚÑÄÖÜ0-9]/.test(x) && !NO_ES_NOMBRE.has(normalizar(x).trim()));
+  return nombre ? prefijo : null;
+}
+
 // ---------- catálogo ----------
 export function parsePersonajes(txt: string): Personaje[] {
   return txt
@@ -155,8 +178,11 @@ export function parsePersonajes(txt: string): Personaje[] {
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith("#"))
     .map((l) => {
-      const [id, nombre, categoria, alias] = l.split("|").map((x) => x.trim());
-      return { id, nombre, categoria, alias: alias.split(",").map((a) => a.trim()).filter(Boolean) };
+      const [id, nombre, categoria, alias, noConfundir = ""] = l.split("|").map((x) => x.trim());
+      return {
+        id, nombre, categoria, alias: alias.split(",").map((a) => a.trim()).filter(Boolean),
+        noConfundir: noConfundir.split(",").map((a) => a.trim()).filter(Boolean),
+      };
     });
 }
 
@@ -179,7 +205,10 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
     ? { id: orden.map((p) => p.id).join("+"), nombre: orden.map((p) => p.nombre).join(" + "), categoria: "cine", alias: orden.flatMap((p) => p.alias) }
     : encontrados[0];
 
-  const otro = multifirma ? null : (firmanteDistinto(t, personaje) ?? firmanteEnDescripcion(descripcionUtil(descripcion), personaje));
+  const confusion = (personaje.noConfundir ?? []).find((c) => tiene(t, c));
+  if (confusion) return { ok: false, motivo: "firma_otro", detalle: confusion };
+  const otro = multifirma ? null
+    : (firmanteDistinto(t, personaje) ?? firmantePrefijo(titulo, personaje) ?? firmanteEnDescripcion(descripcionUtil(descripcion), personaje));
   if (otro) return { ok: false, motivo: "firma_otro", detalle: otro };
 
   // 2) Exclusiones.
