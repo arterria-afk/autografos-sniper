@@ -3,6 +3,7 @@ import { db } from "./supabase";
 import { referenciaCarta, resolverReferencia, juzgar } from "./precio";
 import { enviarAlerta, esc } from "./telegram";
 import { jugadores, nombreDe } from "./personajes";
+import type { Interes } from "./ingesta";
 import { vendedorBloqueado } from "./votos";
 import { FUENTE } from "./precio";
 import { descartarPorIA, resumenIA, revisar } from "./ia";
@@ -10,7 +11,32 @@ import { fichaEbay } from "./ebay";
 import { guardarReevaluacion, reevaluar } from "./descripciones";
 
 type Row = { id: number; external_id: string; platform: string; seller?: string | null; descripcion?: string | null; title: string; price: number; currency: string; url: string; photo_url: string | null; personaje_id: string; tipo: string; tamano: string | null; certificados: string[];
-  kind?: string | null; carta_clave?: string | null; carta_desc?: string | null };
+  kind?: string | null; carta_clave?: string | null; carta_desc?: string | null; interes?: Interes };
+
+// Wallapop da favoritos, visitas y conversaciones en la ficha. Solo se consulta para los chollos (pocas llamadas).
+async function interesDe(l: Row): Promise<Interes | null> {
+  if (l.interes) return l.interes;
+  if (l.platform !== "wallapop") return null;
+  try {
+    const r = await fetch(`https://api.wallapop.com/api/v3/items/${l.external_id.replace(/^wallapop:/, "")}`, {
+      headers: { "user-agent": "Mozilla/5.0", "x-deviceos": "0", accept: "application/json" }, signal: AbortSignal.timeout(5000),
+    });
+    if (!r.ok) return null;
+    const c = ((await r.json()) as { counters?: { favorites?: number; views?: number; conversations?: number } }).counters;
+    return c ? { likes: c.favorites, vistas: c.views, chats: c.conversations } : null;
+  } catch { return null; }
+}
+function lineaInteres(i: Interes | null): string | null {
+  if (!i) return null;
+  const partes = [
+    i.likes != null ? `❤️ ${i.likes} ${i.likes === 1 ? "favorito" : "favoritos"}` : null,
+    i.vistas != null ? `👁️ ${i.vistas} visitas` : null,
+    i.chats != null ? `💬 ${i.chats} ${i.chats === 1 ? "conversación" : "conversaciones"}` : null,
+  ].filter(Boolean);
+  if (!partes.length) return null;
+  const caliente = (i.likes ?? 0) >= 10 || (i.chats ?? 0) >= 3;
+  return `${partes.join(" · ")}${caliente ? " — <b>mucho interés, decide rápido</b>" : ""}`;
+}
 
 const PLAT: Record<string, string> = { vinted: "Vinted", ebay: "eBay", wallapop: "Wallapop", etsy: "Etsy", catawiki: "Catawiki" };
 const eur = (n: number, c = "EUR") => `${n.toLocaleString("es-ES", { maximumFractionDigits: 2 })} ${c === "EUR" ? "€" : c}`;
@@ -64,6 +90,8 @@ export async function alertar(l: Row) {
     esc(l.title),
     `💶 Precio: <b>${eur(Number(l.price), l.currency)}</b> en ${PLAT[l.platform] ?? l.platform}`,
   ];
+  const interes = lineaInteres(await interesDe(l));
+  if (interes) lineas.push(interes);
   if (ref) {
     const dif = Number(ref.precio) - Number(l.price);
     const que = esCarta ? "de esta misma carta" : "de piezas parecidas";

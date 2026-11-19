@@ -55,9 +55,12 @@ export function parsearCatalogo(html) {
     const precioTxt = html.match(new RegExp(`product-item-id-${id}--price-text">([^<]+)<`))?.[1];
     const price = euros(precioTxt ?? "") ?? euros(title);
     if (price == null) continue;
+    // ❤️ favoritos: aria-label "… favorito de N usuarios" del botón del corazón
+    const fav = html.match(new RegExp(`aria-label="([^"]*)"[^>]*data-testid="product-item-id-${id}--favourite"`))?.[1];
+    const likes = fav ? Number(fav.match(/(\d+)\s*usuari/)?.[1] ?? 0) : null;
     out.push({
       id, title: limpiarTitulo(ent(title)), price, currency: "EUR",
-      url: BASE + ent(href).replace(/\?.*$/, ""), photo: img ? ent(img) : null, market: "ES",
+      url: BASE + ent(href).replace(/\?.*$/, ""), photo: img ? ent(img) : null, market: "ES", ...(likes != null ? { interes: { likes } } : {}),
     });
   }
   return out;

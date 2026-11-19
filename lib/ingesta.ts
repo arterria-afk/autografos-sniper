@@ -11,7 +11,9 @@ export type Item = {
   subasta?: boolean;            // subasta de eBay: el precio actual no es el final → no se compara ni alerta
   tituloReconocer?: string;     // título "destraducido" (eBay ES/DE traduce los títulos)
   fin?: string | null;          // fecha de fin (eBay)
+  interes?: Interes;            // ❤️ favoritos, 👁️ visitas, 💬 conversaciones (si la plataforma lo da)
 };
+export type Interes = { likes?: number; vistas?: number; chats?: number };
 
 const CARTAS_MIN = () => Number(process.env.CARTAS_MIN ?? 25); // precio mínimo para cartas (€)
 
@@ -75,16 +77,18 @@ export async function ingerir(items: Item[], platform: string, mode = "live") {
   const conFin = filas.filter((f) => f.ends_at && vistos.includes(f.external_id as string)).slice(0, 100);
   await Promise.all(conFin.map((f) => db().from("listings").update({ ends_at: f.ends_at }).eq("external_id", f.external_id as string).is("ends_at", null)));
 
+  // Interés (favoritos…) no se guarda en la base: viaja con el anuncio hasta la alerta.
+  const interes = new Map(items.filter((it) => it.interes).map((it) => [`${platform}:${it.id}`, it.interes!]));
   let alertas = 0;
   // Vinted: la búsqueda no trae la descripción → las alertas esperan a que el script la lea (ver /api/descripcion).
   const pendientes = platform === "vinted" && mode === "live"
-    ? (nuevos ?? []).map((n) => ({ external_id: n.external_id as string, url: n.url as string }))
+    ? (nuevos ?? []).map((n) => ({ external_id: n.external_id as string, url: n.url as string, interes: interes.get(n.external_id as string) }))
     : [];
   if (mode === "live" && !pendientes.length) {
     // Autógrafos: solo certificados. Cartas: todas (ya filtradas por valor y precio mínimo).
     // Las subastas no se comparan (su precio actual no es el final).
     const candidatos = (nuevos ?? []).filter((n) => n.status !== "subasta" && (n.kind === "carta" || n.con_certificado));
-    await Promise.all(candidatos.map((n) => alertar(n)));
+    await Promise.all(candidatos.map((n) => alertar({ ...n, interes: interes.get(n.external_id) })));
     alertas = candidatos.length;
   }
   const cartas = filas.filter((f) => f.kind === "carta").length;

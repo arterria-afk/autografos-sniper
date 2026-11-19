@@ -30,7 +30,7 @@ await bucle(async () => {
     let d = null;
     if (i < MAX_DESC) { d = await conFreno(() => descripcion(p.url)); await pausa(); }
     if (d) desc.leidas++; else desc.sin_leer++;
-    lote.push({ external_id: p.external_id, descripcion: d ?? "" });
+    lote.push({ external_id: p.external_id, descripcion: d ?? "", interes: p.interes });
     if (lote.length >= 15 || i === pendientes.length - 1) {
       const r = await web("/api/descripcion", { items: lote.splice(0) });
       for (const k of ["descartados", "certificados", "candidatos"]) desc[k] += r[k] ?? 0;

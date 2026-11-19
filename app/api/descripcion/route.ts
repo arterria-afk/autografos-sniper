@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { autorizado } from "@/lib/auth";
 import { db } from "@/lib/supabase";
 import { alertar } from "@/lib/alertas";
+import type { Interes } from "@/lib/ingesta";
 import { guardarReevaluacion, reevaluar } from "@/lib/descripciones";
 
 export const maxDuration = 60;
@@ -10,7 +11,7 @@ export const maxDuration = 60;
 // POST { items: [{ external_id, descripcion }] }
 export async function POST(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
-  const { items = [] } = (await req.json()) as { items: { external_id: string; descripcion: string | null }[] };
+  const { items = [] } = (await req.json()) as { items: { external_id: string; descripcion: string | null; interes?: Interes }[] };
   const res = { recibidos: items.length, descartados: 0, certificados: 0, candidatos: 0, motivos: {} as Record<string, number> };
   const candidatos: Record<string, unknown>[] = [];
   for (const it of items) {
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     await guardarReevaluacion(l.id, ev);
     if (ev.descartar) { res.descartados++; const m = (ev.motivo ?? "").split(" ")[0]; res.motivos[m] = (res.motivos[m] ?? 0) + 1; continue; }
     if (ev.certificado) res.certificados++;
-    const fila = { ...l, ...ev.cambios };
+    const fila = { ...l, ...ev.cambios, interes: it.interes };
     if (fila.status !== "subasta" && (fila.kind === "carta" || fila.con_certificado)) candidatos.push(fila);
   }
   res.candidatos = candidatos.length;
