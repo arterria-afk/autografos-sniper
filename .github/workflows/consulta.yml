@@ -5,11 +5,17 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Valorar cartas (tras publicar Vercel)
+      - name: Títulos guardados de Michael Jackson y Eminem
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
-        run: sleep 150 && python3 scripts/valorar-cartas.py
+        run: |
+          for p in michael-jackson eminem; do
+            out=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=400" | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin); r=d.get('resultados') or []
+          print(len(r), ' ||| '.join(x['title'][:90] for x in r))" | tr '\n%' '  ')
+            for i in 0 1 2 3 4 5 6 7 8; do [ -n "${out:$((i*3800)):1}" ] && echo "::notice title=$p-$i::${out:$((i*3800)):3800}"; done
+          done
