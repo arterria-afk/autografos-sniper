@@ -3,3 +3,6 @@
 :root { color-scheme: dark; }
 body { -webkit-text-size-adjust: 100%; }
 a { text-underline-offset: 3px; }
+
+/* Paleta antigua de las páginas existentes → tonos del nuevo diseño */
+.divide-\[\#1f2a22\] > :not(:last-child) { border-color: rgb(255 255 255 / 0.05); }

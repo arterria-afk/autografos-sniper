@@ -8,9 +8,9 @@ export const fecha = (s: string | null | undefined) =>
 
 export function Caja({ titulo, children, extra }: { titulo?: string; children: React.ReactNode; extra?: React.ReactNode }) {
   return (
-    <section className="rounded border border-[#1f2a22] bg-[#0f1411]">
+    <section className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.02]">
       {titulo && (
-        <h2 className="flex items-center justify-between border-b border-[#1f2a22] px-4 py-2 text-sm text-[#8fa394]">
+        <h2 className="flex items-center justify-between border-b border-white/5 px-4 py-3 text-sm font-semibold text-slate-300">
           <span>{titulo}</span>
           {extra}
         </h2>
@@ -21,9 +21,9 @@ export function Caja({ titulo, children, extra }: { titulo?: string; children: R
 }
 
 export function Foto({ src, alt }: { src: string | null; alt: string }) {
-  if (!src) return <div className="h-16 w-16 shrink-0 rounded bg-[#1f2a22]" />;
+  if (!src) return <div className="h-16 w-16 shrink-0 rounded-xl bg-white/5" />;
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={src} alt={alt} loading="lazy" className="h-16 w-16 shrink-0 rounded object-cover" />;
+  return <img src={src} alt={alt} loading="lazy" className="h-16 w-16 shrink-0 rounded-xl object-cover ring-1 ring-white/10" />;
 }
 
 export function Cert({ certs, coa }: { certs: string[]; coa?: boolean }) {
@@ -39,5 +39,5 @@ export function SinDatos({ children }: { children: React.ReactNode }) {
   return <p className="px-4 py-6 text-center text-sm text-[#5f7364]">{children}</p>;
 }
 
-export const input = "w-full rounded border border-[#1f2a22] bg-[#0a0d0b] px-3 py-2 text-sm";
-export const boton = "rounded bg-[#5cf08a] px-4 py-2 text-sm font-bold text-black";
+export const input = "w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-sm outline-none focus:border-emerald-400/60";
+export const boton = "rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-4 py-2.5 text-sm font-semibold text-black hover:opacity-90";

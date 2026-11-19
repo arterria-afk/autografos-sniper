@@ -4,6 +4,7 @@ import { db } from "@/lib/supabase";
 import { nombreDe } from "@/lib/personajes";
 import { fotoPublica } from "@/lib/fotos-url";
 import { Caja, eur, fecha, Foto, SinDatos } from "@/lib/ui";
+import { estadisticas } from "@/lib/estadisticas";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,10 @@ export default async function Inicio() {
       .eq("listings.descartado", false).order("created_at", { ascending: false }).limit(6),
   ]);
 
+  const est = await estadisticas();
+  const suma = (o: Record<string, { analizados: number; vendidos: number; chollos: number }>) =>
+    Object.values(o).reduce((a, x) => ({ analizados: a.analizados + x.analizados, vendidos: a.vendidos + x.vendidos, chollos: a.chollos + x.chollos }), { analizados: 0, vendidos: 0, chollos: 0 });
+  const sa = suma(est.auto), sc = suma(est.cartas);
   const ultimaPasada = ultimo.data?.last_seen_at as string | undefined;
   const minutos = ultimaPasada ? Math.round((Date.now() - new Date(ultimaPasada).getTime()) / 60e3) : null;
   const vs = (votos.data ?? []) as { fb: string }[];
@@ -50,10 +55,28 @@ export default async function Inicio() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="text-xl text-[#5cf08a]">Panel</h1>
+        <h1 className="text-2xl font-bold tracking-tight">🏠 Panel</h1>
         <p className={`text-xs ${minutos != null && minutos < 40 ? "text-[#5cf08a]" : "text-[#e8c35a]"}`}>
           {minutos == null ? "Robot sin datos todavía" : minutos < 40 ? `● Robot activo · última pasada hace ${minutos} min` : `● Robot parado hace ${Math.round(minutos / 60)} h — revisa GitHub Actions`}
         </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {[
+          { href: "/autografos", icono: "✍️", t: "Autógrafos", d: "Memorabilia firmada por celebridad", x: sa, grad: "from-emerald-500/20 to-teal-500/5" },
+          { href: "/cartas", icono: "🃏", t: "Cartas", d: "Numeradas, graduadas y autos por jugador", x: sc, grad: "from-cyan-500/20 to-violet-500/5" },
+        ].map((b) => (
+          <Link key={b.href} href={b.href} className={`group rounded-2xl border border-white/5 bg-gradient-to-br ${b.grad} p-5 transition hover:border-white/15`}>
+            <p className="text-3xl">{b.icono}</p>
+            <p className="mt-2 text-xl font-bold group-hover:text-white">{b.t}</p>
+            <p className="text-sm text-slate-400">{b.d}</p>
+            <div className="mt-4 flex gap-6 text-sm">
+              <span><b className="text-lg tabular-nums">{b.x.analizados.toLocaleString("es-ES")}</b> <span className="text-slate-400">analizados</span></span>
+              <span><b className="text-lg tabular-nums">{b.x.vendidos.toLocaleString("es-ES")}</b> <span className="text-slate-400">ventas</span></span>
+              <span><b className="text-lg tabular-nums text-amber-300">{b.x.chollos}</b> <span className="text-slate-400">chollos</span></span>
+            </div>
+          </Link>
+        ))}
       </div>
 
       <section className="space-y-2">
