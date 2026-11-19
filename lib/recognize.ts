@@ -259,7 +259,7 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
   if (encontrados.length === 0) return { ok: false, motivo: "sin_personaje" };
   // Multifirma: varios personajes de CINE en un póster o foto (p. ej. "Heat" firmado por De Niro y Al Pacino).
   // Se trata como una pieza propia ("al-pacino+robert-de-niro") y solo se compara con piezas de los mismos firmantes.
-  const multifirma = encontrados.length > 1 && encontrados.every((p) => p.categoria === "cine") && ["poster", "foto"].includes(tipoTitulo);
+  const multifirma = encontrados.length > 1 && encontrados.every((p) => p.categoria === "cine") && ["poster", "foto", "otro", "documento"].includes(tipoTitulo);
   if (encontrados.length > 1 && !multifirma)
     return { ok: false, motivo: "ambiguo", detalle: encontrados.map((p) => p.nombre).join(" / ") };
   const orden = [...encontrados].sort((a, b) => a.id.localeCompare(b.id));
