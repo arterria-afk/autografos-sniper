@@ -1,7 +1,7 @@
 import { estadisticas, type StatsPersona } from "@/lib/estadisticas";
 import { jugadores } from "@/lib/personajes";
 import { eur } from "@/lib/ui";
-import { Avatar, Cabecera, Kpi, n, Num, Seccion, Tarjeta } from "@/components/Ficha";
+import { Avatar, Cabecera, Kpi, n, Num, NumEnlace, Seccion, Tarjeta } from "@/components/Ficha";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ function Ficha({ s, nombre, acento }: { s: StatsPersona; nombre: string; acento:
         <Num v={n(s.graduadas)} etiqueta="Graduadas" color="text-cyan-300" />
         <Num v={n(s.autos)} etiqueta="Autos" color="text-violet-300" />
         <Num v={n(s.vendidos)} etiqueta="Ventas" />
-        <Num v={n(s.chollos)} etiqueta="Chollos" color={s.chollos ? "text-amber-300" : "text-white"} />
+        <NumEnlace v={n(s.chollos)} etiqueta="Chollos" href={`/chollos?per=${encodeURIComponent(s.id)}&k=cartas&solo=chollos`} color={s.chollos ? "text-amber-300" : "text-white"} />
       </div>
       <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
         <span>{n(s.activos)} a la venta ahora</span>
@@ -46,7 +46,7 @@ export default async function Cartas() {
         <Kpi etiqueta="Analizadas" v={n(tot("analizados"))} sub={`+${n(tot("nuevos7d"))} esta semana`} />
         <Kpi etiqueta="Cartas distintas" v={n(tot("distintas"))} color="text-cyan-300" />
         <Kpi etiqueta="Ventas registradas" v={n(tot("vendidos"))} sub="precio de referencia" />
-        <Kpi etiqueta="Chollos" v={n(tot("chollos"))} color="text-amber-300" />
+        <Kpi etiqueta="Chollos" v={n(tot("chollos"))} color="text-amber-300" href="/chollos?k=cartas&solo=chollos" />
       </div>
       {grupos.map((g) => {
         const js = jugadores().filter((j) => j.tipo === g.tipo).map((j) => ({ j, s: cartas[j.id] ?? vacia(j.id) })).sort((a, b) => b.s.analizados - a.s.analizados);

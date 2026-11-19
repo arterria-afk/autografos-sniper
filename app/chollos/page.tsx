@@ -70,7 +70,10 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl text-[#5cf08a]">Chollos</h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">🔥 {f.solo === "oport" ? "Oportunidades" : f.solo === "chollos" ? "Chollos" : "Todo lo encontrado"}{f.per ? ` de ${nombre(f.per)}` : ""}</h1>
+        {f.per && <Link href={url({ per: undefined })} className="rounded-full bg-white/5 px-3 py-1 text-xs text-slate-300 hover:bg-white/10">✕ quitar {nombre(f.per)}</Link>}
+      </div>
       <div className="flex flex-wrap gap-2">
         {chip(url({ solo: undefined }), !f.solo, "Todo")}
         {chip(url({ solo: "chollos" }), f.solo === "chollos", "🔥 Solo chollos")}
@@ -100,7 +103,13 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
 
       {error && <p className="text-sm text-[#f06b5c]">Error de base de datos: {error.message}. ¿Has ejecutado la migración 002 en Supabase?</p>}
       <Caja>
-        {deals.length === 0 ? <SinDatos>No hay nada con estos filtros.</SinDatos> : (
+        {deals.length === 0 ? (
+          <SinDatos>
+            {f.solo === "chollos"
+              ? <>Todavía no hay chollos confirmados{f.per ? ` de ${nombre(f.per)}` : ""}: hacen falta ventas reales con las que comparar. <Link href={url({ solo: "oport" })} className="text-amber-300 underline">Ver 💡 oportunidades</Link> o <Link href={url({ solo: undefined })} className="underline">todo lo encontrado</Link>.</>
+              : "No hay nada con estos filtros."}
+          </SinDatos>
+        ) : (
           <ul className="divide-y divide-[#1f2a22]">
             {deals.map((d) => (
               <li key={d.id} className="flex gap-3 px-4 py-3">

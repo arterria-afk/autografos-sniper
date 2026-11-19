@@ -29,6 +29,11 @@ export default async function CartasJugador({ params }: { params: Promise<{ id: 
         <div>
           <h1 className="text-2xl font-bold">{j.nombre}</h1>
           <p className="text-sm text-slate-400">{j.tipo === "leyenda" ? "Leyenda" : "Jugador actual"} · {colecciones.length} colecciones</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-sm">
+            <Link href={`/chollos?per=${id}&k=cartas&solo=chollos`} className="rounded-full bg-amber-400/15 px-3 py-1 text-amber-300 hover:bg-amber-400/25">🔥 Ver sus chollos</Link>
+            <Link href={`/chollos?per=${id}&k=cartas&solo=oport`} className="rounded-full bg-white/5 px-3 py-1 text-slate-300 hover:bg-white/10">💡 Oportunidades</Link>
+            <Link href={`/chollos?per=${id}&k=cartas`} className="rounded-full bg-white/5 px-3 py-1 text-slate-300 hover:bg-white/10">Todo lo encontrado</Link>
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -36,7 +41,7 @@ export default async function CartasJugador({ params }: { params: Promise<{ id: 
         <Kpi etiqueta="Cartas distintas" v={n(s?.distintas ?? 0)} color="text-cyan-300" />
         <Kpi etiqueta="A la venta" v={n(s?.activos ?? 0)} />
         <Kpi etiqueta="Ventas" v={n(s?.vendidos ?? 0)} sub={s?.medianaVenta ? `mediana ${eur(s.medianaVenta)}` : undefined} />
-        <Kpi etiqueta="Chollos" v={n(s?.chollos ?? 0)} color="text-amber-300" />
+        <Kpi etiqueta="Chollos" v={n(s?.chollos ?? 0)} color="text-amber-300" href={`/chollos?per=${id}&k=cartas&solo=chollos`} />
       </div>
 
       {colecciones.length === 0 && <p className="text-slate-500">Aún no hay cartas guardadas de este jugador.</p>}

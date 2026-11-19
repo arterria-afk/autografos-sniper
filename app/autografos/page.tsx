@@ -1,7 +1,7 @@
 import { estadisticas, type StatsPersona } from "@/lib/estadisticas";
 import { nombreDe, personajes } from "@/lib/personajes";
 import { eur } from "@/lib/ui";
-import { Avatar, Cabecera, Kpi, n, Num, Seccion, Tarjeta } from "@/components/Ficha";
+import { Avatar, Cabecera, Kpi, n, Num, NumEnlace, Seccion, Tarjeta } from "@/components/Ficha";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ function Ficha({ s, nombre, acento }: { s: StatsPersona; nombre: string; acento:
         <Num v={n(s.certificados)} etiqueta="Certific." color="text-emerald-300" />
         <Num v={n(s.vendidos)} etiqueta="Ventas" />
         <Num v={s.medianaVenta ? eur(s.medianaVenta) : "—"} etiqueta="Mediana" />
-        <Num v={n(s.chollos)} etiqueta="Chollos" color={s.chollos ? "text-amber-300" : "text-white"} />
+        <NumEnlace v={n(s.chollos)} etiqueta="Chollos" href={`/chollos?per=${encodeURIComponent(s.id)}&k=autografos&solo=chollos`} color={s.chollos ? "text-amber-300" : "text-white"} />
       </div>
       {s.analizados > 0 && (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/5" title="Certificados sobre analizados">
@@ -51,7 +51,7 @@ export default async function Autografos() {
         <Kpi etiqueta="Analizados" v={n(tot("analizados"))} sub={`+${n(tot("nuevos7d"))} esta semana`} />
         <Kpi etiqueta="Con certificado" v={n(tot("certificados"))} color="text-emerald-300" />
         <Kpi etiqueta="Ventas registradas" v={n(tot("vendidos"))} sub="precio de referencia" />
-        <Kpi etiqueta="Chollos" v={n(tot("chollos"))} color="text-amber-300" />
+        <Kpi etiqueta="Chollos" v={n(tot("chollos"))} color="text-amber-300" href="/chollos?k=autografos&solo=chollos" />
       </div>
 
       {Object.entries(CATEGORIAS).map(([cat, c]) => {

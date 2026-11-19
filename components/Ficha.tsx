@@ -20,10 +20,22 @@ export function Num({ v, etiqueta, color = "text-white" }: { v: string | number;
   );
 }
 
+// Tarjeta pulsable entera (enlace "por debajo"); los enlaces internos (p. ej. Chollos) van por encima.
 export function Tarjeta({ href, children, acento = "from-emerald-500/10" }: { href: string; children: React.ReactNode; acento?: string }) {
   return (
-    <Link href={href} className={`group block rounded-2xl border border-white/5 bg-gradient-to-br ${acento} to-transparent p-4 transition hover:border-white/15 hover:bg-white/[0.03]`}>
+    <div className={`group relative rounded-2xl border border-white/5 bg-gradient-to-br ${acento} to-transparent p-4 transition hover:border-white/15 hover:bg-white/[0.03]`}>
+      <Link href={href} className="absolute inset-0 rounded-2xl" aria-label="Ver detalle" />
       {children}
+    </div>
+  );
+}
+
+// Cifra pulsable (por encima de la tarjeta): lleva a la lista filtrada.
+export function NumEnlace({ v, etiqueta, href, color = "text-white" }: { v: string | number; etiqueta: string; href: string; color?: string }) {
+  return (
+    <Link href={href} className="relative z-10 -m-1 rounded-lg p-1 hover:bg-white/10">
+      <p className={`text-lg font-semibold tabular-nums ${color}`}>{v}<span className="ml-0.5 text-xs text-slate-500">›</span></p>
+      <p className="truncate text-[11px] uppercase tracking-wide text-slate-500 underline decoration-dotted underline-offset-2">{etiqueta}</p>
     </Link>
   );
 }
@@ -52,14 +64,17 @@ export function Cabecera({ icono, titulo, sub, children }: { icono: string; titu
   );
 }
 
-export function Kpi({ v, etiqueta, sub, color = "text-white" }: { v: string | number; etiqueta: string; sub?: string; color?: string }) {
-  return (
-    <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-500">{etiqueta}</p>
+export function Kpi({ v, etiqueta, sub, color = "text-white", href }: { v: string | number; etiqueta: string; sub?: string; color?: string; href?: string }) {
+  const dentro = (
+    <>
+      <p className="text-xs uppercase tracking-wide text-slate-500">{etiqueta}{href && " ›"}</p>
       <p className={`mt-1 text-2xl font-bold tabular-nums ${color}`}>{v}</p>
       {sub && <p className="mt-0.5 text-xs text-slate-500">{sub}</p>}
-    </div>
+    </>
   );
+  return href
+    ? <Link href={href} className="block rounded-2xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-amber-300/40 hover:bg-white/[0.06]">{dentro}</Link>
+    : <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-4">{dentro}</div>;
 }
 
 export const n = (x: number) => x.toLocaleString("es-ES");

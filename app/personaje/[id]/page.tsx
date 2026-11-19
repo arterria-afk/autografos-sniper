@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { enlace } from "@/lib/enlaces";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
@@ -33,8 +34,13 @@ export default async function Personaje({ params, searchParams }: { params: Prom
       <div className="flex items-center gap-3">
         <Foto src={foto ? fotoPublica(foto.photo_path, foto.photo_url) : null} alt={p.nombre} />
         <div>
-          <h1 className="text-xl text-[#5cf08a]">{p.nombre}</h1>
+          <h1 className="text-2xl font-bold">{p.nombre}</h1>
           <p className="text-xs text-[#8fa394]">{p.categoria} · solo piezas con certificado</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-sm">
+            <Link href={`/chollos?per=${encodeURIComponent(id)}&k=autografos&solo=chollos`} className="rounded-full bg-amber-400/15 px-3 py-1 text-amber-300 hover:bg-amber-400/25">🔥 Ver sus chollos</Link>
+            <Link href={`/chollos?per=${encodeURIComponent(id)}&k=autografos&solo=oport`} className="rounded-full bg-white/5 px-3 py-1 text-slate-300 hover:bg-white/10">💡 Oportunidades</Link>
+            <Link href={`/chollos?per=${encodeURIComponent(id)}&k=autografos`} className="rounded-full bg-white/5 px-3 py-1 text-slate-300 hover:bg-white/10">Todo lo encontrado</Link>
+          </div>
         </div>
       </div>
 
