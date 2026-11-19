@@ -16,3 +16,86 @@ al-pacino | Al Pacino | cine | al pacino, pacino, alfredo pacino
 leonardo-dicaprio | Leonardo DiCaprio | cine | leonardo dicaprio, dicaprio, di caprio, leonardo di caprio, leo dicaprio, leo di caprio
 sylvester-stallone | Sylvester Stallone | cine | sylvester stallone, stallone, sly stallone, silvester stallone, sylvester stalone
 arnold-schwarzenegger | Arnold Schwarzenegger | cine | arnold schwarzenegger, schwarzenegger, schwarzeneger, schwarzenager, schwarzennegger, arnold schwarzeneger, arnold schwarzenager, schwarzenegguer
+# --- solo búsquedas amplias (no se busca nombre a nombre: ahorra cupo). Se reconocen dentro de "signed movie poster", "historical autograph"… ---
+# Leyendas del cine
+marilyn-monroe | Marilyn Monroe | cine | marilyn monroe, marylin monroe, norma jeane, norma jean baker | manson, marilyn manson
+james-dean | James Dean | cine | james dean
+marlon-brando | Marlon Brando | cine | marlon brando, brando
+audrey-hepburn | Audrey Hepburn | cine | audrey hepburn | katharine hepburn, mel ferrer
+humphrey-bogart | Humphrey Bogart | cine | humphrey bogart, bogart | lauren bacall
+charlie-chaplin | Charlie Chaplin | cine | charlie chaplin, charles chaplin, chaplin, charlot | geraldine chaplin, sydney chaplin, oona, kiera chaplin, ben chaplin
+alfred-hitchcock | Alfred Hitchcock | cine | alfred hitchcock, hitchcock
+stanley-kubrick | Stanley Kubrick | cine | stanley kubrick, kubrick
+john-wayne | John Wayne | cine | john wayne | lil wayne, patrick wayne, ethan wayne, gacy
+clint-eastwood | Clint Eastwood | cine | clint eastwood, eastwood | scott eastwood, kyle eastwood, alison eastwood
+steve-mcqueen | Steve McQueen | cine | steve mcqueen, steve mc queen | chad mcqueen
+bruce-lee | Bruce Lee | cine | bruce lee | brandon lee, shannon lee, linda lee
+grace-kelly | Grace Kelly | cine | grace kelly, princess grace, princesa grace
+elizabeth-taylor | Elizabeth Taylor | cine | elizabeth taylor, liz taylor
+paul-newman | Paul Newman | cine | paul newman
+sean-connery | Sean Connery | cine | sean connery, connery | jason connery
+robin-williams | Robin Williams | cine | robin williams
+heath-ledger | Heath Ledger | cine | heath ledger
+jack-nicholson | Jack Nicholson | cine | jack nicholson, nicholson
+harrison-ford | Harrison Ford | cine | harrison ford
+steven-spielberg | Steven Spielberg | cine | steven spielberg, spielberg
+martin-scorsese | Martin Scorsese | cine | martin scorsese, scorsese
+francis-ford-coppola | Francis Ford Coppola | cine | francis ford coppola, francis coppola | sofia coppola
+# Leyendas de la música
+elvis-presley | Elvis Presley | musica | elvis presley, elvis | priscilla, lisa marie, elvis costello, scotty moore, fontana, impersonator, tribute, imitador
+john-lennon | John Lennon | musica | john lennon, lennon | julian lennon, sean lennon
+freddie-mercury | Freddie Mercury | musica | freddie mercury, freddy mercury | brian may, roger taylor, john deacon, rami malek
+david-bowie | David Bowie | musica | david bowie, bowie
+kurt-cobain | Kurt Cobain | musica | kurt cobain, cobain | courtney love, frances bean
+bob-marley | Bob Marley | musica | bob marley | ziggy marley, damian marley, stephen marley, rita marley
+# Personajes históricos
+che-guevara | Che Guevara | historia | che guevara, ernesto guevara, ernesto che guevara, guevara
+winston-churchill | Winston Churchill | historia | winston churchill, churchill, winston s churchill | churchill downs, clementine, randolph churchill
+joseph-stalin | Iósif Stalin | historia | stalin, josef stalin, joseph stalin, iosif stalin, josip stalin
+vladimir-lenin | Lenin | historia | lenin, vladimir lenin, wladimir lenin, vladimir ilich | lenin moreno
+francisco-franco | Francisco Franco | historia | francisco franco, general franco, generalisimo franco, franco bahamonde, caudillo franco | james franco, dave franco
+john-f-kennedy | John F. Kennedy | historia | john f kennedy, john kennedy, jfk, j f kennedy, john fitzgerald kennedy | jacqueline, jackie kennedy, robert kennedy, rfk, ted kennedy, jfk jr, john f kennedy jr, caroline kennedy, airport
+abraham-lincoln | Abraham Lincoln | historia | abraham lincoln, abe lincoln, a lincoln
+napoleon-bonaparte | Napoleón Bonaparte | historia | napoleon bonaparte, napoleon i, napoleon | napoleon dynamite, napoleon iii, louis napoleon, napoleon hill
+mahatma-gandhi | Mahatma Gandhi | historia | mahatma gandhi, gandhi, mohandas gandhi | indira, rajiv, sonia gandhi
+martin-luther-king | Martin Luther King | historia | martin luther king, mlk | coretta, bernice king
+fidel-castro | Fidel Castro | historia | fidel castro | raul castro
+mao-zedong | Mao Zedong | historia | mao zedong, mao tse tung, mao tsetung, mao tse-tung
+albert-einstein | Albert Einstein | historia | albert einstein, einstein
+nelson-mandela | Nelson Mandela | historia | nelson mandela, mandela | winnie
+juan-pablo-ii | Juan Pablo II | historia | juan pablo ii, john paul ii, pope john paul, papa juan pablo, giovanni paolo ii, karol wojtyla, johannes paul ii
+# Grandes películas: SOLO pósters/fotos multifirmados por el reparto ("cast signed", "firmado por el reparto", varios nombres)
+peli-padrino | El Padrino | pelicula | the godfather, godfather, el padrino, der pate, il padrino
+peli-star-wars | Star Wars | pelicula | star wars, la guerra de las galaxias, empire strikes back, return of the jedi, a new hope, el imperio contraataca, el retorno del jedi
+peli-regreso-futuro | Regreso al futuro | pelicula | back to the future, regreso al futuro, volver al futuro, zuruck in die zukunft
+peli-pulp-fiction | Pulp Fiction | pelicula | pulp fiction
+peli-scarface | Scarface | pelicula | scarface
+peli-rocky | Rocky | pelicula | rocky balboa, rocky ii, rocky iii, rocky iv, rocky | rocky marciano, rocky horror
+peli-terminator | Terminator | pelicula | terminator
+peli-jurassic-park | Jurassic Park | pelicula | jurassic park, parque jurasico
+peli-titanic | Titanic | pelicula | titanic
+peli-casablanca | Casablanca | pelicula | casablanca
+peli-viento | Lo que el viento se llevó | pelicula | gone with the wind, lo que el viento se llevo, vom winde verweht
+peli-mago-oz | El mago de Oz | pelicula | wizard of oz, mago de oz, zauberer von oz
+peli-indiana-jones | Indiana Jones | pelicula | indiana jones, raiders of the lost ark, en busca del arca perdida
+peli-goodfellas | Uno de los nuestros | pelicula | goodfellas, uno de los nuestros
+peli-taxi-driver | Taxi Driver | pelicula | taxi driver
+peli-et | E.T. | pelicula | e t the extra terrestrial, the extra terrestrial, el extraterrestre
+peli-senor-anillos | El Señor de los Anillos | pelicula | lord of the rings, senor de los anillos, herr der ringe
+peli-harry-potter | Harry Potter | pelicula | harry potter
+peli-cazafantasmas | Cazafantasmas | pelicula | ghostbusters, cazafantasmas
+peli-tiburon | Tiburón | pelicula | jaws, tiburon
+peli-resplandor | El resplandor | pelicula | the shining, el resplandor
+peli-naranja-mecanica | La naranja mecánica | pelicula | clockwork orange, naranja mecanica
+peli-club-lucha | El club de la lucha | pelicula | fight club, club de la lucha
+peli-matrix | Matrix | pelicula | the matrix, matrix
+peli-gladiator | Gladiator | pelicula | gladiator, gladiador
+peli-forrest-gump | Forrest Gump | pelicula | forrest gump
+peli-top-gun | Top Gun | pelicula | top gun
+peli-reservoir-dogs | Reservoir Dogs | pelicula | reservoir dogs
+peli-kill-bill | Kill Bill | pelicula | kill bill
+peli-goonies | Los Goonies | pelicula | goonies
+peli-grease | Grease | pelicula | grease
+peli-blade-runner | Blade Runner | pelicula | blade runner
+peli-apocalypse-now | Apocalypse Now | pelicula | apocalypse now
+peli-lebowski | El gran Lebowski | pelicula | big lebowski, gran lebowski

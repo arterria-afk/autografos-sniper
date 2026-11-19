@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 // Pósters primero: son las piezas más interesantes.
 const TIPOS: [string, string, string][] = [
   ["poster", "🎬", "Pósters"], ["foto", "📸", "Fotos"], ["camiseta", "👕", "Camisetas"], ["balon", "⚽", "Balones"],
-  ["vinilo", "💿", "Vinilos / CD"], ["zapatilla", "👟", "Zapatillas"], ["otro", "📦", "Otros"],
+  ["vinilo", "💿", "Vinilos / CD"], ["documento", "📜", "Cartas y documentos"], ["zapatilla", "👟", "Zapatillas"], ["otro", "📦", "Otros"],
 ];
 
 type L = { external_id: string; title: string; price: number; url: string; photo_url: string | null; photo_path: string | null; tipo: string; certificados: string[]; sold_at: string | null; seen_at: string; platform: string };

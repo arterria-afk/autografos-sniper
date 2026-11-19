@@ -16,10 +16,10 @@ jobs:
           sleep 150
           out=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck")
           echo "::notice title=recheck::$(echo "$out" | head -c 1500)"
-          for p in quentin-tarantino michael-jackson eminem kobe-bryant sylvester-stallone; do
+          for p in leo-messi michael-jordan eminem quentin-tarantino; do
             n=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=1000" | python3 -c "
           import json,sys,collections
-          j=json.load(sys.stdin); it=j.get('items',j if isinstance(j,list) else [])
+          j=json.load(sys.stdin); it=j.get('resultados') or []
           c=collections.Counter(x.get('tipo') for x in it)
           print(len(it), dict(c))")
             echo "::notice title=$p::$n"

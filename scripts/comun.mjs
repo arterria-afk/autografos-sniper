@@ -20,8 +20,11 @@ export async function web(path, body) {
   return JSON.parse(t);
 }
 
+// Personajes que se buscan nombre a nombre (los de después de "solo búsquedas amplias" no: ver busquedas-amplias.txt).
 export function personajes() {
-  return readFileSync("data/personajes.txt", "utf8").split("\n").map((l) => l.trim())
+  const txt = readFileSync("data/personajes.txt", "utf8");
+  const corte = txt.indexOf("# --- solo búsquedas amplias");
+  return (corte >= 0 ? txt.slice(0, corte) : txt).split("\n").map((l) => l.trim())
     .filter((l) => l && !l.startsWith("#")).map((l) => { const [id, nombre] = l.split("|").map((x) => x.trim()); return { id, nombre }; });
 }
 
@@ -31,13 +34,21 @@ export function jugadores() {
 }
 
 // Búsquedas de cada pasada: autógrafos (sin precio mínimo) + cartas (desde CARTAS_MIN €).
-export function busquedas(palabrasAutografo) {
+export function amplias(donde) {
+  return readFileSync("data/busquedas-amplias.txt", "utf8").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#"))
+    .map((l) => l.split("|").map((x) => x.trim())).filter(([d]) => d.split(",").map((x) => x.trim()).includes(donde))
+    .map(([, texto]) => ({ texto, min: 0 }));
+}
+
+// donde: "vinted", "wallapop" o el mercado de eBay → añade las búsquedas amplias de ese sitio.
+export function busquedas(palabrasAutografo, donde) {
   const palabras = palabrasAutografo ?? (process.env.PALABRAS ?? "firmado,autografo,signed").split(",");
   const cartas = (process.env.PALABRAS_CARTAS ?? "topps,panini,psa").split(",");
   const min = Number(process.env.CARTAS_MIN ?? 25);
   return [
     ...personajes().flatMap((p) => palabras.map((w) => ({ texto: `${p.nombre} ${w}`, min: 0 }))),
     ...jugadores().flatMap((j) => cartas.map((w) => ({ texto: `${j.nombre} ${w}`, min }))),
+    ...(donde ? amplias(donde) : []),
   ];
 }
 

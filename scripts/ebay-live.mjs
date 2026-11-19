@@ -24,7 +24,7 @@ await bucle(async () => {
   const errores = {};
   let ok = 0, seguidos = 0;
   for (const mercado of MERCADOS) {
-    for (const b of busquedas(PALABRAS[mercado])) {
+    for (const b of busquedas(PALABRAS[mercado], ORDEN === "nuevos" ? mercado : undefined)) {
       let r = null;
       for (let intento = 0; intento < 2 && !r; intento++) {
         try { r = await web("/api/ebay", { q: b.texto, mercado, min: b.min, orden: ORDEN }); }

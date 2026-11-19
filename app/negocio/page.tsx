@@ -14,7 +14,7 @@ type Pieza = {
 };
 
 const TIPOS = ["foto", "camiseta", "balon", "tarjeta", "vinilo", "poster", "zapatilla", "otro"];
-const CERTS = ["PSA/DNA", "Beckett", "JSA", "Upper Deck", "Panini", "Topps", "Leaf", "Futera", "Fanatics", "Otro COA"];
+const CERTS = ["PSA/DNA", "Beckett", "JSA", "Upper Deck", "Panini", "Topps", "Leaf", "Futera", "Fanatics", "ACOA", "RR Auction", "Steiner", "Tristar", "Roger Epperson", "Otro COA"];
 const coste = (p: Pieza) => Number(p.precio_compra) + Number(p.gastos_compra);
 const beneficio = (p: Pieza) => Number(p.precio_venta ?? 0) - Number(p.gastos_venta) - coste(p);
 const dias = (desde: string | null, hasta?: string | null) => !desde ? null : Math.max(0, Math.round(((hasta ? new Date(hasta) : new Date()).getTime() - new Date(desde).getTime()) / 864e5));

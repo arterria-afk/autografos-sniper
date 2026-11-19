@@ -11,7 +11,7 @@ const MAX_DESC = Number(process.env.MAX_DESC ?? 40); // descripciones por pasada
 await bucle(async () => {
   const total = { recibidos: 0, reconocidos: 0, cartas: 0, nuevos: 0 };
   const pendientes = [];
-  for (const b of busquedas()) {
+  for (const b of busquedas(undefined, "vinted")) {
     for (let page = 1; page <= PAGINAS; page++) {
       const items = await conFreno(() => buscar(b.texto, page, b.min));
       await pausa();

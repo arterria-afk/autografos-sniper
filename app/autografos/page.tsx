@@ -10,6 +10,8 @@ const CATEGORIAS: Record<string, { titulo: string; icono: string; acento: string
   baloncesto: { titulo: "Baloncesto", icono: "🏀", acento: "from-orange-500/10" },
   musica: { titulo: "Música", icono: "🎤", acento: "from-fuchsia-500/10" },
   cine: { titulo: "Cine", icono: "🎬", acento: "from-sky-500/10" },
+  pelicula: { titulo: "Grandes películas (firmadas por el reparto)", icono: "🎞️", acento: "from-amber-500/10" },
+  historia: { titulo: "Personajes históricos", icono: "🏛️", acento: "from-stone-400/10" },
 };
 
 function Ficha({ s, nombre, acento }: { s: StatsPersona; nombre: string; acento: string }) {

@@ -1,0 +1,32 @@
+# Búsquedas amplias: encuentran leyendas del cine, históricos y pósters multifirmados sin buscar nombre a nombre.
+# donde | texto      (donde: vinted, wallapop, EBAY_US, EBAY_GB, EBAY_ES, EBAY_DE; varios separados por comas)
+# En eBay solo se usan en la búsqueda de anuncios nuevos (cada 8 h), no en la de subastas que terminan: cupo.
+vinted,wallapop | poster firmado
+vinted,wallapop | autografo certificado
+vinted,wallapop | firmado certificado psa
+vinted,wallapop | firmado beckett
+vinted,wallapop | autografo historico
+vinted,wallapop | carta firmada autografo
+EBAY_US | cast signed poster
+EBAY_US | signed movie poster beckett
+EBAY_US | signed movie poster psa
+EBAY_US | signed movie poster jsa
+EBAY_US | signed letter psa
+EBAY_US | signed document jsa
+EBAY_GB | signed film poster
+EBAY_GB | cast signed
+EBAY_GB | autograph acoa
+EBAY_ES | poster firmado
+EBAY_DE | filmplakat signiert
+EBAY_DE | autogramm acoa
+EBAY_DE | autogramm historisch
+EBAY_US | winston churchill signed
+EBAY_US | che guevara signed
+EBAY_US | albert einstein signed
+EBAY_US | john f kennedy signed
+EBAY_US | marilyn monroe signed
+EBAY_US | elvis presley signed
+EBAY_US | john lennon signed
+EBAY_US | charlie chaplin signed
+EBAY_US | bruce lee signed
+EBAY_US | james dean signed

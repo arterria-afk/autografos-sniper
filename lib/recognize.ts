@@ -3,8 +3,9 @@
 
 export type Personaje = { id: string; nombre: string; categoria: string; alias: string[]; noConfundir?: string[] };
 
-export type Certificado = "PSA/DNA" | "Beckett" | "JSA" | "Upper Deck" | "Panini" | "Topps" | "Leaf" | "Futera" | "Fanatics";
-export type Tipo = "foto" | "camiseta" | "balon" | "poster" | "vinilo" | "tarjeta" | "zapatilla" | "otro";
+export type Certificado = "PSA/DNA" | "Beckett" | "JSA" | "Upper Deck" | "Panini" | "Topps" | "Leaf" | "Futera" | "Fanatics"
+  | "ACOA" | "RR Auction" | "Steiner" | "Tristar" | "Roger Epperson";
+export type Tipo = "foto" | "camiseta" | "balon" | "poster" | "vinilo" | "tarjeta" | "zapatilla" | "documento" | "otro";
 
 export type Reconocido = {
   ok: true;
@@ -80,6 +81,12 @@ const CERTS: { cert: Certificado; frases: string[] }[] = [
   { cert: "JSA", frases: ["jsa", "james spence"] },
   { cert: "Upper Deck", frases: ["upper deck authenticated", "upper deck authentication", "uda"] },
   { cert: "Fanatics", frases: ["fanatics", "fanatics authentic"] },
+  // ACOA: el que acepta Catawiki (cine, música, históricos). RR Auction: la referencia en históricos.
+  { cert: "ACOA", frases: ["acoa", "acoa coa", "acoa zertifiziert", "autograph coa ltd"] },
+  { cert: "RR Auction", frases: ["rr auction", "rr auctions", "rrauction"] },
+  { cert: "Steiner", frases: ["steiner sports", "steiner coa", "steiner hologram", "steiner authentic", "steiner authenticated"] },
+  { cert: "Tristar", frases: ["tristar", "tri star authentic", "tristar hologram"] },
+  { cert: "Roger Epperson", frases: ["roger epperson", "epperson", "racc", "real authentication"] },
 ];
 // "psa" / "beckett" a secas cuentan solo si NO van seguidos de una nota (número).
 const sueltoSinNota = (t: string, marca: string) => new RegExp(` ${marca} (?!(\\d|gem|mint|grade|graded|nm)\\b)`).test(t) || t.endsWith(` ${marca} `);
@@ -101,6 +108,8 @@ const TIPOS: { tipo: Tipo; frases: string[] }[] = [
   { tipo: "tarjeta", frases: ["card", "cards", "carta", "cartas", "tarjeta", "tarjetas", "cromo", "trading card", "rookie", "rc", "topps", "leaf", "futera", "score board", "scoreboard", "skybox", "fleer", "hoops", "bowman", "totally certified", "prizm", "select", "optic", "chrome", "refractor", "sammelkarte", "figurina", "carte"] },
   { tipo: "camiseta", frases: ["jersey", "camiseta", "shirt", "maillot", "maglia", "trikot", "camisola", "kit"] },
   { tipo: "balon", frases: ["ball", "balon", "basketball", "football ball", "soccer ball", "pallone", "fussball", "ballon", "bola"] },
+  { tipo: "documento", frases: ["letter", "signed letter", "carta manuscrita", "carta autografa", "carta firmada", "document", "documento", "cheque", "signed check",
+    "cut signature", "firma recortada", "album page", "pagina de album", "postcard", "postal", "book", "libro", "libro firmado", "menu", "brief", "handschreiben", "lettera", "lettre", "manuscrito", "manuscript", "photo card"] },
   { tipo: "vinilo", frases: ["vinyl", "vinilo", "lp", "record", "album", "disco", "vinile", "schallplatte", "cd"] },
   { tipo: "poster", frases: ["poster", "cartel", "affiche", "lithograph", "litografia"] },
   { tipo: "zapatilla", frases: ["shoe", "shoes", "sneaker", "sneakers", "zapatilla", "zapatillas", "boot", "boots", "bota", "botas", "chaussure", "scarpa"] },
@@ -218,15 +227,36 @@ export function parsePersonajes(txt: string): Personaje[] {
     });
 }
 
+// ---------- películas: pósters/fotos firmados por el REPARTO ----------
+// "Pulp Fiction cast signed poster", "firmado por el reparto", "3 firmas", "Travolta & Thurman signed".
+export function firmaReparto(titulo: string): boolean {
+  const t = normalizar(titulo);
+  if (/ (cast|reparto|elenco|besetzung) (signed|autographed|firmad[oa]|signiert|autografiad[oa])| (signed|autographed|firmad[oa]|signiert) (by|por|von) (the |el |la |dem )?(cast|reparto|elenco|besetzung)| multi ?(signed|firmad[oa]|signiert)| multisigned| multifirma| multi firma| (dual|triple|team) (signed|autographed|signiert)| (\d+|two|three|four|five|six|seven|eight|dos|tres|cuatro|cinco|seis|zwei|drei|vier) (signatures|firmas|autographs|autografos|unterschriften|autogramme) /.test(t)) return true;
+  // Dos nombres propios unidos por &, +, "and", "y"… ("John Travolta & Uma Thurman")
+  const re = new RegExp(`(${NOMBRE2})(?:\\s*[&+,]|\\s+(?:and|y|und|e|et))\\s+(${NOMBRE2})`, "g");
+  for (const m of titulo.matchAll(re)) {
+    const palabras = normalizar(m[1] + " " + m[2]).trim().split(" ");
+    if (!palabras.some((w) => NO_ES_NOMBRE.has(w) || PALABRA_FIRMA.test(w))) return true;
+  }
+  return false;
+}
+
 // ---------- reconocedor ----------
 export function reconocer(titulo: string, personajes: Personaje[], descripcion = ""): Resultado {
   const t = normalizar(titulo);
   const todo = normalizar(titulo + " " + descripcionUtil(descripcion));
 
   // 1) Personaje: exactamente uno.
-  const encontrados = personajes.filter((p) => algun(t, p.alias));
-  if (encontrados.length === 0) return { ok: false, motivo: "sin_personaje" };
+  const todos = personajes.filter((p) => algun(t, p.alias));
+  const pelis = todos.filter((p) => p.categoria === "pelicula");
+  const encontrados = todos.filter((p) => p.categoria !== "pelicula");
   const tipoTitulo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
+  // Película firmada por el reparto (póster/foto/guion): cuenta como pieza de la película.
+  // Si solo firma uno, la película no cuenta (será del personaje, si está en la lista).
+  const reparto = pelis.length === 1 && encontrados.length < 2 && ["poster", "foto", "otro"].includes(tipoTitulo) && firmaReparto(titulo)
+    && !(pelis[0].noConfundir ?? []).some((c) => tiene(t, c));
+  if (reparto) encontrados.splice(0, encontrados.length, pelis[0]);
+  if (encontrados.length === 0) return { ok: false, motivo: "sin_personaje" };
   // Multifirma: varios personajes de CINE en un póster o foto (p. ej. "Heat" firmado por De Niro y Al Pacino).
   // Se trata como una pieza propia ("al-pacino+robert-de-niro") y solo se compara con piezas de los mismos firmantes.
   const multifirma = encontrados.length > 1 && encontrados.every((p) => p.categoria === "cine") && ["poster", "foto"].includes(tipoTitulo);
@@ -237,12 +267,13 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
     ? { id: orden.map((p) => p.id).join("+"), nombre: orden.map((p) => p.nombre).join(" + "), categoria: "cine", alias: orden.flatMap((p) => p.alias) }
     : encontrados[0];
 
-  const confusion = (personaje.noConfundir ?? []).find((c) => tiene(t, c));
+  const varias = multifirma || reparto;
+  const confusion = reparto ? undefined : (personaje.noConfundir ?? []).find((c) => tiene(t, c));
   if (confusion) return { ok: false, motivo: "firma_otro", detalle: confusion };
-  if (!multifirma && personajeComoTema(t, personaje)) return { ok: false, motivo: "firma_otro", detalle: "el personaje sale en la foto, firma otro" };
-  const otro = multifirma ? null
+  if (!varias && personajeComoTema(t, personaje)) return { ok: false, motivo: "firma_otro", detalle: "el personaje sale en la foto, firma otro" };
+  const otro = varias ? null
     : (firmanteDistinto(t, personaje) ?? firmantePrefijo(titulo, personaje) ?? firmanteEnDescripcion(descripcionUtil(descripcion), personaje));
-  if (!otro && !multifirma) {
+  if (!otro && !varias) {
     const varios = variosFirmantes(titulo, personaje);
     if (varios) return { ok: false, motivo: "varios_firmantes", detalle: varios };
   }
@@ -260,7 +291,9 @@ export function reconocer(titulo: string, personajes: Personaje[], descripcion =
   const certificados = CERTS.filter((c) => algun(todo, c.frases)).map((c) => c.cert);
   if (!certificados.includes("PSA/DNA") && sueltoSinNota(todo, "psa")) certificados.push("PSA/DNA");
   if (!certificados.includes("Beckett") && sueltoSinNota(todo, "beckett")) certificados.push("Beckett");
-  const tipo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
+  let tipo = TIPOS.find((x) => algun(t, x.frases))?.tipo ?? "otro";
+  // Históricos: "carta firmada por Churchill" es una carta manuscrita, no un cromo.
+  if (personaje.categoria === "historia" && tipo === "tarjeta" && !algun(t, ["topps", "panini", "trading card", "card", "cards", "cromo", "upper deck", "leaf", "rookie"])) tipo = "documento";
   // Fabricantes de tarjetas (Panini, Topps, Leaf, Futera): un cromo firmado a mano NO está certificado.
   // Solo cuenta "<marca> authentic" o una TARJETA con autógrafo de fábrica ("auto", "on card"…).
   const autoFabrica = tipo === "tarjeta" && algun(t, ["auto", "autos", "autograph", "autographs", "autograf", "rpa", "on card", "on card auto", "sticker auto", "signature series", "signatures"]) ||
