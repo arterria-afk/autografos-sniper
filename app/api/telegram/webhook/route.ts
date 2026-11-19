@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { webhookValido } from "@/lib/auth";
 import { botonesVoto, tg } from "@/lib/telegram";
-import { MOTIVOS, MOTIVOS_DUDA, registrarVoto, type Motivo, type MotivoDuda, type Voto } from "@/lib/votos";
+import { MOTIVOS, MOTIVOS_DUDA, MOTIVOS_CARTA, MOTIVOS_MAL_AUTO, registrarVoto, type Motivo, type MotivoDuda, type Voto } from "@/lib/votos";
 
 const TXT: Record<Voto, string> = { bueno: "✅ Anotado: bueno", duda: "🤔 ¿Qué duda tienes?", mal: "❌ ¿Por qué?" };
+const VALIDOS = { ...MOTIVOS_MAL_AUTO, ...MOTIVOS_CARTA };
 
 export async function POST(req: Request) {
   if (!webhookValido(req)) return NextResponse.json({ ok: false }, { status: 401 });
@@ -30,10 +31,10 @@ export async function POST(req: Request) {
     await registrarVoto(dealId, "duda", valor as MotivoDuda);
     await editar([[{ text: `🤔 ${MOTIVOS_DUDA[valor as MotivoDuda]}`, callback_data: `v:${dealId}:duda` }]]);
     await tg("answerCallbackQuery", { callback_query_id: q.id, text: "Anotado. Lo verás en la web → Chollos → 🤔" });
-  } else if (tipo === "m" && dealId && valor in MOTIVOS) {
+  } else if (tipo === "m" && dealId && valor in VALIDOS) {
     await registrarVoto(dealId, "mal", valor as Motivo);
-    await editar([[{ text: `❌ ${MOTIVOS[valor as Motivo]}`, callback_data: `v:${dealId}:mal` }]]);
-    await tg("answerCallbackQuery", { callback_query_id: q.id, text: "Anotado. No volverá a salir." });
+    await editar([[{ text: `${valor === "no_interesa" ? "👎" : "❌"} ${MOTIVOS[valor]}`, callback_data: valor in MOTIVOS_CARTA ? `x:${dealId}` : `v:${dealId}:mal` }]]);
+    await tg("answerCallbackQuery", { callback_query_id: q.id, text: valor === "no_interesa" ? "Anotado." : "Anotado. No volverá a salir." });
   } else {
     await tg("answerCallbackQuery", { callback_query_id: q.id });
   }

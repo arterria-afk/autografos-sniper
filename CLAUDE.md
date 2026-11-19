@@ -16,7 +16,8 @@ pasos concretos y numerados, nunca pedirle que pegue claves en el chat). Basado 
    - Bancos de pruebas: `npm run probar` (autógrafos) y `npm run probar-cartas`. Regla: 0 fallos tras cada cambio.
 3. Registra VENTAS REALES: Vinted (`vinted-sold`), Wallapop (solo si lo marca vendido), eBay (`/api/ebay-sold`: subasta terminada con unidades vendidas = venta), y las ventas propias de "Mi negocio" (Excel importado).
 4. Chollos a Telegram SOLO comparando con ventas reales (decisión del usuario: "una cosa es que lo ofrezcan y otra que lo vendan"). ≥2 ventas de lo mismo → mediana; ≥25 % por debajo. Los precios pedidos por otros vendedores son solo "💡 Oportunidades" (resumen y web), nunca alerta.
-5. Resúmenes por Telegram a las 10:00 y 17:00 (Europe/Madrid). Votos ✅ 🤔 ❌ (aprende: descarta, bloquea vendedores).
+5. Votos: autógrafos valoran el ANUNCIO (✅ parece bueno · 🤔 firma/certificado · ❌ falsa/otro personaje/cert no vale), nunca el precio. Cartas: ✅ carta bien · ❌ no es esa carta · 👎 no me interesa.
+6. Resúmenes por Telegram a las 10:00 y 17:00 (Europe/Madrid). Votos ✅ 🤔 ❌ (aprende: descarta, bloquea vendedores).
 
 ## Infraestructura
 - GitHub: `arterria-afk/autografos-sniper` (público). Ramas auxiliares `diagnostico` y `consulta`: un push lanza un workflow cuyos resultados se leen como *annotations* por la API pública (así se depura sin acceso a Vercel/Supabase).

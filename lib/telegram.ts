@@ -1,3 +1,4 @@
+import { MOTIVOS_DUDA, MOTIVOS_MAL_AUTO } from "./motivos";
 const API = () => `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`;
 
 type Boton = { text: string; callback_data?: string; url?: string };
@@ -15,28 +16,29 @@ export async function tg(method: string, body: Record<string, unknown>) {
 
 export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-// Botones de voto: ✅ bueno · 🤔 dudas · ❌ te has equivocado (→ motivo).
-export function botonesVoto(dealId: number, paso: "voto" | "motivo" | "duda"): Boton[][] {
-  if (paso === "duda")
-    return [
-      [{ text: "¿Será auténtico?", callback_data: `d:${dealId}:duda_real` }, { text: "¿Precio de mercado bien?", callback_data: `d:${dealId}:duda_precio` }],
-      [{ text: "Me interesa según precio", callback_data: `d:${dealId}:depende_precio` }, { text: "Otra duda", callback_data: `d:${dealId}:duda_otro` }],
-    ];
+// Botones de voto. Autógrafos: ✅ parece bueno · 🤔 dudas (→ cuál) · ❌ mal (→ por qué).
+// Cartas: ✅ carta bien reconocida · ❌ no es esa carta · 👎 no me interesa (sin submenús).
+export function botonesVoto(dealId: number, paso: "voto" | "motivo" | "duda", carta = false): Boton[][] {
+  if (carta)
+    return [[
+      { text: "✅ Carta bien", callback_data: `v:${dealId}:bueno` },
+      { text: "❌ No es esa carta", callback_data: `m:${dealId}:no_carta` },
+      { text: "👎 No me interesa", callback_data: `m:${dealId}:no_interesa` },
+    ]];
   if (paso === "voto")
     return [[
-      { text: "✅ Bueno", callback_data: `v:${dealId}:bueno` },
+      { text: "✅ Parece bueno", callback_data: `v:${dealId}:bueno` },
       { text: "🤔 Dudas", callback_data: `v:${dealId}:duda` },
-      { text: "❌ Te equivocas", callback_data: `v:${dealId}:mal` },
+      { text: "❌ Mal", callback_data: `v:${dealId}:mal` },
     ]];
-  return [
-    [{ text: "No es firma real", callback_data: `m:${dealId}:no_firma` }, { text: "No es ese personaje", callback_data: `m:${dealId}:no_personaje` }],
-    [{ text: "Precio mal calculado", callback_data: `m:${dealId}:precio` }, { text: "Otro", callback_data: `m:${dealId}:otro` }],
-  ];
+  const fila = (m: Record<string, string>, pre: string) => Object.entries(m).map(([k, t]) => ({ text: t, callback_data: `${pre}:${dealId}:${k}` }));
+  const bs = paso === "duda" ? fila(MOTIVOS_DUDA, "d") : fila(MOTIVOS_MAL_AUTO, "m");
+  return [bs.slice(0, 2), bs.slice(2)];
 }
 
-export async function enviarAlerta(opts: { foto?: string | null; html: string; url: string; dealId: number }) {
+export async function enviarAlerta(opts: { foto?: string | null; html: string; url: string; dealId: number; carta?: boolean }) {
   const chat_id = process.env.TELEGRAM_CHAT_ID;
-  const reply_markup = { inline_keyboard: [[{ text: "Abrir anuncio", url: opts.url }], ...botonesVoto(opts.dealId, "voto")] };
+  const reply_markup = { inline_keyboard: [[{ text: "Abrir anuncio", url: opts.url }], ...botonesVoto(opts.dealId, "voto", opts.carta)] };
   if (opts.foto) {
     const r = await tg("sendPhoto", { chat_id, photo: opts.foto, caption: opts.html.slice(0, 1024), parse_mode: "HTML", reply_markup });
     if (r.ok) return r.result.message_id as number;

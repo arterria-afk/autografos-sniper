@@ -133,7 +133,7 @@ export default async function Chollos({ searchParams }: { searchParams: Promise<
                     {d.listings?.status && d.listings.status !== "activo" && <span className="text-[#e8c35a]">{d.listings.status}</span>}
                   </div>
                   {d.ia && <p className={`text-xs ${d.ia_descartado ? "text-[#f06b5c]" : d.ia.riesgo === "medio" ? "text-[#e8c35a]" : "text-[#8fa394]"}`}>{d.ia_descartado ? "Descartado · " : ""}{resumenIA(d.ia)}</p>}
-                  <Votos id={d.id} fb={d.fb} motivo={d.fb_motivo} />
+                  <Votos id={d.id} fb={d.fb} motivo={d.fb_motivo} carta={d.listings?.tipo === "tarjeta"} />
                 </div>
               </li>
             ))}

@@ -1,24 +1,12 @@
 import { db } from "./supabase";
 
 export type Voto = "bueno" | "duda" | "mal";
-export type Motivo = "no_firma" | "no_personaje" | "precio" | "otro" | MotivoDuda;
-export type MotivoDuda = "duda_real" | "duda_precio" | "depende_precio" | "duda_otro";
 
-// 🤔 Dudas: no descarta nada, solo anota la duda (se ven en la web → Chollos → 🤔).
-export const MOTIVOS_DUDA: Record<MotivoDuda, string> = {
-  duda_real: "¿Será auténtico?",
-  duda_precio: "¿Precio de mercado bien?",
-  depende_precio: "Me interesa según precio",
-  duda_otro: "Otra duda",
-};
+export * from "./motivos";
+import type { Motivo } from "./motivos";
 
-export const MOTIVOS: Record<Motivo, string> = {
-  no_firma: "No es firma real",
-  no_personaje: "No es ese personaje",
-  precio: "Precio mal calculado",
-  otro: "Otro",
-  ...MOTIVOS_DUDA,
-};
+// Estos ❌ quitan el anuncio (no sale ni cuenta como referencia de precio) y suman para bloquear al vendedor.
+const GRAVES = new Set(["no_firma", "no_personaje", "no_cert", "no_carta"]);
 
 // Cuántos ❌ (firma falsa / personaje equivocado) hacen falta para bloquear a un vendedor.
 const BLOQUEO_TRAS = 2;
@@ -32,7 +20,7 @@ export async function registrarVoto(dealId: number, fb: Voto, motivo: Motivo | n
     .eq("id", dealId).select("listing_id").single();
   if (!deal?.listing_id) return;
 
-  const grave = fb === "mal" && (motivo === "no_firma" || motivo === "no_personaje");
+  const grave = fb === "mal" && !!motivo && GRAVES.has(motivo);
   await db().from("listings").update({ descartado: grave }).eq("id", deal.listing_id);
   if (!grave) return;
 

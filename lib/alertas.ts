@@ -111,6 +111,6 @@ export async function alertar(l: Row) {
   if (j.aviso) lineas.push(`⚠️ ${esc(j.aviso)}`);
   if (ia) lineas.push(esc(resumenIA(ia)));
 
-  const msgId = await enviarAlerta({ foto: l.photo_url, html: lineas.join("\n"), url: enlace(l.url), dealId: deal.id });
+  const msgId = await enviarAlerta({ foto: l.photo_url, html: lineas.join("\n"), url: enlace(l.url), dealId: deal.id, carta: esCarta });
   if (msgId) await db().from("deals").update({ telegram_msg_id: msgId }).eq("id", deal.id);
 }
