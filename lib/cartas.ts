@@ -23,7 +23,9 @@ export function parseJugadores(txt: string): Jugador[] {
 }
 
 // Colecciones (de más específica a más general). [marca, colección, frases]
+// OJO: eBay España traduce los títulos ("Upper Deck" → "cubierta superior", "Hoops" → "aros"…): los alias lo cubren.
 const COLECCIONES: [string, string, string[]][] = [
+  ["Topps", "Stadium Club Chrome", ["stadium club chrome", "stadium chrome", "chrome stadium club", "chrome stadium"]],
   ["Topps", "Chrome Sapphire", ["chrome sapphire", "sapphire"]],
   ["Topps", "Chrome UCC", ["chrome ucc", "chrome uefa", "topps chrome champions"]],
   ["Topps", "Chrome", ["topps chrome", "chrome"]],
@@ -38,6 +40,7 @@ const COLECCIONES: [string, string, string[]][] = [
   ["Topps", "Now", ["topps now"]],
   ["Topps", "Match Attax", ["match attax"]],
   ["Topps", "UCC", ["ucc", "uefa club competitions", "topps champions league"]],
+  ["Panini", "Prizm Monopoly", ["monopoly"]],
   ["Panini", "Prizm", ["prizm"]],
   ["Panini", "Select", ["select"]],
   ["Panini", "Obsidian", ["obsidian"]],
@@ -55,8 +58,14 @@ const COLECCIONES: [string, string, string[]][] = [
   ["Fleer", "Fleer", ["fleer"]],
   ["SkyBox", "E-X2000", ["e x2000", "ex2000", "e x 2000"]],
   ["SkyBox", "SkyBox", ["skybox", "sky box"]],
-  ["Hoops", "NBA Hoops", ["nba hoops", "hoops"]],
-  ["Upper Deck", "SP Authentic", ["sp authentic"]],
+  ["Hoops", "NBA Hoops", ["nba hoops", "hoops", "aros"]],
+  ["Upper Deck", "SP Authentic", ["sp authentic", "sp autentico"]],
+  ["Upper Deck", "Rare Air", ["rare air", "raro aire", "aire raro"]],
+  ["Upper Deck", "Black Diamond", ["black diamond", "diamante negro"]],
+  ["Upper Deck", "Athlete of the Century", ["athlete of the century", "atleta del siglo"]],
+  ["Upper Deck", "Goodwin Champions", ["goodwin champions", "goodwin"]],
+  ["Upper Deck", "Exquisite", ["exquisite"]],
+  ["Upper Deck", "MJ Collection", ["mj collection", "career collection", "living legend", "tribute visions", "mj reflections", "reflexiones mj", "mj reflexiones"]],
   ["Upper Deck", "SPx", ["spx"]],
   ["Upper Deck", "Collector's Choice", ["collector s choice", "collectors choice"]],
   ["Topps", "Bowman Chrome", ["bowman chrome"]],
@@ -65,7 +74,12 @@ const COLECCIONES: [string, string, string[]][] = [
   ["Star", "Star Co", ["star co", "1984 star", "1985 star", "1986 star", "star company"]],
   ["Futera", "Futera", ["futera"]],
   ["Leaf", "Leaf", ["leaf"]],
-  ["Upper Deck", "Upper Deck", ["upper deck"]],
+  ["Upper Deck", "Upper Deck", ["upper deck", "cubierta superior", "ud"]],
+  // Vintage de fútbol
+  ["Errege", "Glorias e Trofeus", ["errege", "glorias e trofeus"]],
+  ["Vanderhout", "Vanderhout", ["vanderhout"]],
+  ["Wild Card", "Wild Card", ["wild card"]],
+  ["Topps", "Total", ["topps total"]],
   ["Topps", "Topps", ["topps"]],
   ["Panini", "Panini", ["panini"]],
 ];
@@ -143,7 +157,11 @@ export function reconocerCarta(titulo: string, jugadores: Jugador[]): Carta | Ca
   const paralela = PARALELAS.find((p) => tiene(t, p)) ?? null;
   const [marca, coleccion] = col ? [col[0], col[1]] : ["?", "?"];
 
-  const clave = [jugador.id, coleccion, temporada ?? "?", paralela ?? "base", numerada ? `/${numerada}` : "-", grado ?? "raw", auto ? "auto" : "-"].join("|").toLowerCase();
+  // Cartas antiguas (antes de 2005): el número de carta (#23) distingue cartas distintas del mismo año y colección.
+  const anio = temporada ? (temporada.length === 4 ? Number(temporada) : (Number(temporada.slice(0, 2)) >= 50 ? 1900 : 2000) + Number(temporada.slice(0, 2))) : null;
+  const numCarta = titulo.match(/#\s?([A-Za-z]{0,4}-?\d{1,4}[a-zA-Z]?)\b/)?.[1]?.toLowerCase() ?? null;
+  const colClave = col && anio && anio < 2005 && numCarta ? `${coleccion} #${numCarta}` : coleccion;
+  const clave = [jugador.id, colClave, temporada ?? "?", paralela ?? "base", numerada ? `/${numerada}` : "-", grado ?? "raw", auto ? "auto" : "-"].join("|").toLowerCase();
   const descripcion = [jugador.nombre, marca !== "?" ? (coleccion === marca ? marca : `${marca} ${coleccion}`) : null, temporada, paralela, numerada ? `/${numerada}` : null, rc ? "RC" : null, auto ? "Auto" : null, grado]
     .filter(Boolean).join(" · ");
   return { ok: true, jugador, marca, coleccion, temporada, paralela, numerada, rc, auto, grado, clave, descripcion };
