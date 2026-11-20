@@ -16,9 +16,14 @@ type F = {
 // borra lo que ahora se rechaza y corrige el resto.
 export async function POST(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
+  // Por tandas (Vercel corta a los 60 s): ?desde=ID&hasta=ID
+  const sp = new URL(req.url).searchParams;
+  const desde = Number(sp.get("desde") ?? 0), hasta = Number(sp.get("hasta") ?? 0);
   const leer = (campos: string) =>
     fetchAll<F>(async (a, b) => {
-      const { data, error } = await db().from("listings").select(campos).order("id").range(a, b);
+      let q = db().from("listings").select(campos).gte("id", desde);
+      if (hasta) q = q.lt("id", hasta);
+      const { data, error } = await q.order("id").range(a, b);
       return { data: data as unknown as F[] | null, error };
     });
   const base = "id,title,personaje_id,tipo,certificados,con_certificado";

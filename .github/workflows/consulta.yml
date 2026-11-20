@@ -14,8 +14,12 @@ jobs:
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
           sleep 150
-          r=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck")
-          echo "::notice title=recheck::$(echo "$r" | head -c 1200)"
+          for d in 0 4000 8000 12000 16000 20000 24000 28000 32000 36000; do
+            r=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck?desde=$d&hasta=$((d+4000))")
+            echo "tanda $d: $(echo "$r" | head -c 300)"
+            echo "$r" | python3 -c "import json,sys;j=json.load(sys.stdin);print(j.get('revisados',0),j.get('borrados',0),j.get('corregidos',0))" >> t.txt || echo "0 0 0 ERR" >> t.txt
+          done
+          echo "::notice title=recheck::$(awk '{r+=$1;b+=$2;c+=$3} /ERR/{e++} END{print "revisados",r,"borrados",b,"corregidos",c,"tandas_con_error",e+0}' t.txt)"
           curl -sS -m 280 -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" > s.json
           python3 - <<'PY'
           import json
