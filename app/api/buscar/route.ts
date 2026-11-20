@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   if (!autorizado(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   const sp = new URL(req.url).searchParams;
   let q = db().from("listings")
-    .select("title,price,currency,url,platform,market,status,certificados,tipo,kind,seen_at,last_seen_at,carta_desc,ends_at")
+    .select("title,price,currency,url,platform,market,status,certificados,tipo,kind,seen_at,last_seen_at,carta_desc,carta_clave,ends_at")
     .in("status", (sp.get("estados") ?? "activo,subasta").split(",")).eq("descartado", false)
     .order("price", { ascending: true }).limit(Number(sp.get("n") ?? 40));
   if (sp.get("personaje")) q = q.eq("personaje_id", sp.get("personaje")!);
@@ -16,6 +16,7 @@ export async function GET(req: Request) {
   if (sp.get("cert")) q = q.contains("certificados", [sp.get("cert")!]);
   if (sp.get("texto")) q = q.ilike("title", `%${sp.get("texto")}%`);
   if (sp.get("auto")) q = q.eq("carta_auto", true);
+  if (sp.get("clave")) q = q.like("carta_clave", sp.get("clave")!);
   if (sp.get("max")) q = q.lte("price", Number(sp.get("max")));
   if (sp.get("min")) q = q.gte("price", Number(sp.get("min")));
   const { data, error } = await q;
