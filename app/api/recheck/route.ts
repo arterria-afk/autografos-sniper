@@ -66,5 +66,6 @@ export async function POST(req: Request) {
     }
   }
   for (let i = 0; i < borrar.length; i += 200) await db().from("listings").delete().in("id", borrar.slice(i, i + 200));
-  return NextResponse.json({ revisados: filas.length, borrados: borrar.length, corregidos, motivos, ejemplos });
+  const { data: ult } = await db().from("listings").select("id").order("id", { ascending: false }).limit(1);
+  return NextResponse.json({ max_id: ult?.[0]?.id ?? 0, revisados: filas.length, borrados: borrar.length, corregidos, motivos, ejemplos });
 }

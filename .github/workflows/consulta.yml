@@ -14,7 +14,9 @@ jobs:
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
           sleep 150
-          for d in 0 4000 8000 12000 16000 20000 24000 28000 32000 36000; do
+          max=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck?desde=0&hasta=1" | python3 -c "import json,sys;print(json.load(sys.stdin)['max_id'])")
+          echo "max_id $max"
+          for d in $(seq 0 4000 $max); do
             r=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck?desde=$d&hasta=$((d+4000))")
             echo "tanda $d: $(echo "$r" | head -c 300)"
             echo "$r" | python3 -c "import json,sys;j=json.load(sys.stdin);print(j.get('revisados',0),j.get('borrados',0),j.get('corregidos',0))" >> t.txt || echo "0 0 0 ERR" >> t.txt
