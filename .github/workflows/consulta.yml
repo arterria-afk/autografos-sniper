@@ -6,30 +6,28 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
-      - name: Estadísticas
+      - name: Re-evaluar lo guardado y estadísticas (tras publicar Vercel)
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
           sleep 150
-          curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?kind=carta&estados=vendido&clave=%25%7C%3F%7C%25&n=1000" > q.json
-          python3 -c "
-          import json,collections
-          r=json.load(open('q.json'))['resultados']
-          print('::notice title=sin coleccion::', len(r))
-          ts=[x['title'][:70] for x in r]
-          for i in range(0,min(len(ts),120),12): print('::notice title=t'+str(i)+'::'+' ||| '.join(ts[i:i+12]))
-          "
+          max=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck?desde=0&hasta=1" | python3 -c "import json,sys;print(json.load(sys.stdin)['max_id'])")
+          echo "max_id $max"
+          for d in $(seq 0 4000 $max); do
+            r=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck?desde=$d&hasta=$((d+4000))")
+            echo "tanda $d: $(echo "$r" | head -c 300)"
+            echo "$r" | python3 -c "import json,sys;j=json.load(sys.stdin);print(j.get('revisados',0),j.get('borrados',0),j.get('corregidos',0))" >> t.txt || echo "0 0 0 ERR" >> t.txt
+          done
+          echo "::notice title=recheck::$(awk '{r+=$1;b+=$2;c+=$3} /ERR/{e++} END{print "revisados",r,"borrados",b,"corregidos",c,"tandas_con_error",e+0}' t.txt)"
           curl -sS -m 280 -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" > s.json
           python3 - <<'PY'
           import json
           j=json.load(open('s.json'))
           def n(t,v): print(f"::notice title={t}::{json.dumps(v,ensure_ascii=False)[:1400]}")
-          n('total',j.get('total')); n('vendidos_7d',j.get('vendidos_7d')); n('nuevos_24h',j.get('nuevos_24h'))
           n('ref_cartas',j.get('referencias_cartas')); n('ref_autografos',j.get('referencias_autografos'))
           n('alertas_7d',j.get('alertas_7d'))
-          est={k:v for k,v in j.get('por_plataforma_tipo_estado',{}).items() if 'vendido' in k}
-          n('vendidos_total',est)
           PY
+          curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?kind=carta&estados=vendido&clave=%25%7C%3F%7C%25&n=1000" | python3 -c "import json,sys;print('::notice title=sin coleccion::', len(json.load(sys.stdin)['resultados']))"
