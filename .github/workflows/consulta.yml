@@ -8,19 +8,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Re-evaluar todo lo guardado (tras publicar Vercel)
+      - name: Estadísticas
         env:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
-          sleep 150
-          out=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck")
-          echo "::notice title=recheck::$(echo "$out" | head -c 1500)"
-          for p in leo-messi michael-jordan eminem quentin-tarantino; do
-            n=$(curl -sS -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/buscar?personaje=$p&kind=autografo&estados=activo,subasta,vendido&n=1000" | python3 -c "
-          import json,sys,collections
-          j=json.load(sys.stdin); it=j.get('resultados') or []
-          c=collections.Counter(x.get('tipo') for x in it)
-          print(len(it), dict(c))")
-            echo "::notice title=$p::$n"
-          done
+          curl -sS -m 280 -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" > s.json
+          python3 - <<'PY'
+          import json
+          j=json.load(open('s.json'))
+          def n(t,v): print(f"::notice title={t}::{json.dumps(v,ensure_ascii=False)[:1400]}")
+          n('total',j.get('total')); n('vendidos_7d',j.get('vendidos_7d')); n('nuevos_24h',j.get('nuevos_24h'))
+          n('ref_cartas',j.get('referencias_cartas')); n('ref_autografos',j.get('referencias_autografos'))
+          n('alertas_7d',j.get('alertas_7d'))
+          est={k:v for k,v in j.get('por_plataforma_tipo_estado',{}).items() if 'vendido' in k}
+          n('vendidos_total',est)
+          PY
