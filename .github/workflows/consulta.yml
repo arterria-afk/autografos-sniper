@@ -13,6 +13,9 @@ jobs:
           SITE_URL: ${{ vars.SITE_URL }}
           ALERT_SECRET: ${{ secrets.ALERT_SECRET }}
         run: |
+          sleep 150
+          r=$(curl -sS -m 300 -X POST -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/recheck")
+          echo "::notice title=recheck::$(echo "$r" | head -c 1200)"
           curl -sS -m 280 -H "x-alert-secret: $ALERT_SECRET" "$SITE_URL/api/stats" > s.json
           python3 - <<'PY'
           import json
